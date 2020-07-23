@@ -1,2 +1,2 @@
 # NHLSkill
-A Bayesian Latent Variable Approach to Assessing Skill
+Structural Equation Modelling for Assessing Skill
