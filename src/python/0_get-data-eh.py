@@ -1,6 +1,6 @@
 '''
-This script automates the download of .csv's from EvolvingHockey. You must have a 
-Google email address. If you have 2FA enabled, you must authenticate within 30 seconds of receiving the 
+This script automates the download of .csv's from Evolving Hockey. You must have a 
+Google email address and you muat be a Patreon subscriber. If you have 2FA enabled, you must authenticate within 30 seconds of receiving the 
 message or this script will fail.
 
 Usage: 0_scrape.py --chromedriver_path=<chromedriver_path> --path_out=<path_out> --years=<years> --min_toi=<min_toi> --google_email=<google_email> --google_password=<google_password>
@@ -110,12 +110,11 @@ def main(chromedriver_path, path_out, years, min_toi, google_email, google_passw
 				
 			else:
 				driver.get(
-					'https://evolving-hockey.com/?_inputs_&rapm_sk_age2=%2250%22&rapm_sk_table=\
-					%22Single-Season%22&rapm_sk_season=%22' + str(year-1) + str(year) + '%22&rapm_sk_dft_yr=\
-					%22All%22&dir=%22RAPM%20Skater%20Tables%22&rapm_sk_type=%22Rates%22&rapm_sk_info=\
-					%22No%22&rapm_sk_pos=%22All%22&rapm_sk_span=%22Regular%22&rapm_sk_toi=%22' + str(min_toi_new) + '%22&rapm_sk_team=\
-					%22All%22&rapm_sk_str=%22EV%22&rapm_sk_range=%22Seasons%22&rapm_sk_group=\
-					%22Team%2C%20Season%22&rapm_sk_age1=%2217%22&rapm_sk_players=null'
+					'https://evolving-hockey.com/?_inputs_&rapm_sk_age2=%2250%22&rapm_sk_table=%22Single-Season%22&rapm_sk_season=\
+					%22' + str(year-1) + str(year) + '%22&rapm_sk_dft_yr=%22All%22&dir=%22RAPM%20Skater%20Tables%22&\
+					rapm_sk_type=%22Rates%22&rapm_sk_info=%22No%22&rapm_sk_pos=%22All%22&rapm_sk_span=%22Regular%22&\
+					rapm_sk_toi=%220%22&rapm_sk_team=%22All%22&rapm_sk_str=%22EV%22&rapm_sk_range=%22Seasons%22\
+					&rapm_sk_group=%22Season%22&rapm_sk_age1=%2217%22&rapm_sk_players=null'
 				)
 
 			time.sleep(45)

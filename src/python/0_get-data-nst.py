@@ -48,14 +48,11 @@ def main(chromedriver_path, path_out, years, min_toi):
 
 	driver = webdriver.Chrome(chromedriver_path, options=options)
 
-	if not os.path.exists(path_out + '/nst/on-ice-rel'):
-		os.makedirs(path_out + '/nst/on-ice-rel')
+	file_paths = ['on-ice-rel', 'on-ice-non-rel', 'individual', 'powerplay', 'penaltykill']
+	for path in file_paths:
 		
-	if not os.path.exists(path_out + '/nst/on-ice-non-rel'):
-		os.makedirs(path_out + '/nst/on-ice-non-rel')
-
-	if not os.path.exists(path_out + '/nst/individual'):
-		os.makedirs(path_out + '/nst/individual')
+		if not os.path.exists(path_out + '/nst/' + path):
+			os.makedirs(path_out + '/nst/' + path)
 	
 	for year in all_years:
 		
@@ -99,7 +96,28 @@ def main(chromedriver_path, path_out, years, min_toi):
 		driver.find_elements_by_css_selector('.buttons-csv~ .buttons-csv span')[0].click()
 		time.sleep(10)
 		os.rename(path_out + '/raw/' + os.listdir(path_out + '/raw')[0], path_out + '/nst/individual/' + str(year) + '_' + str(min_toi_new) + ".csv")
+		
+		# Get TOI stats for powerplay
+		driver.get(
+			'https://www.naturalstattrick.com/playerteams.php?fromseason=' + str(year-1) + str(year) + '&thruseason=' + str(year-1) + str(year) + '&\
+			stype=2&sit=pp&score=all&stdoi=std&rate=y&team=ALL&pos=S&loc=B&toi=' + str(min_toi_new) + '&gpfilt=none&fd=&td=&tgp=410&lines=single&draftteam=ALL'
+		)
 
+		time.sleep(40)
+		driver.find_elements_by_css_selector('.buttons-csv~ .buttons-csv span')[0].click()
+		time.sleep(10)
+		os.rename(path_out + '/raw/' + os.listdir(path_out + '/raw')[0], path_out + '/nst/powerplay/' + str(year) + '_' + str(min_toi_new) + ".csv")
+		
+		# Get TOI stats for penalty kill
+		driver.get(
+			'https://www.naturalstattrick.com/playerteams.php?fromseason=' + str(year-1) + str(year) + '&thruseason=' + str(year-1) + str(year) + '&\
+			stype=2&sit=pk&score=all&stdoi=std&rate=y&team=ALL&pos=S&loc=B&toi=' + str(min_toi_new) + '&gpfilt=none&fd=&td=&tgp=410&lines=single&draftteam=ALL'
+		)
+
+		time.sleep(40)
+		driver.find_elements_by_css_selector('.buttons-csv~ .buttons-csv span')[0].click()
+		time.sleep(10)
+		os.rename(path_out + '/raw/' + os.listdir(path_out + '/raw')[0], path_out + '/nst/penaltykill/' + str(year) + '_' + str(min_toi_new) + ".csv")
 	
 main(
 	opt['--chromedriver_path'],
