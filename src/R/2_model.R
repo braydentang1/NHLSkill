@@ -1,7 +1,34 @@
 library(lavaan)
 library(tidyverse)
 
-model <- '
+#' This function extracts the latent offensive and defensive skill of all players
+#' in the data used to fit the model.
+#'
+#' @param model A lavaan fitted model.
+#' @param position_player Either "D" or "F" for defenceman or forward, respectively.
+#' @param data A tibble - the same dataset used to fit the lavaan model. 
+#' 
+#' @return A tibble with columns player, off_score, and def_score.
+#' @export
+#'
+#' @examples
+#' get_latent_vars(my_lavaan_model, "D", my_data)
+get_latent_vars <- function(model, position_player, data) {
+	
+	tibble(
+		player = unique(data %>% 
+											filter(position == position_player) %>% 
+											select(player) %>% 
+											pull()),
+		off_score = lavPredict(fit, level = 2)[[position_player]][, 1],
+		def_score = lavPredict(fit, level = 2)[[position_player]][, 2]
+		)
+	
+}
+
+data <- read_rds("results/data/gte_2019.rds")
+
+model_2019 <- '
 group: F
 	level: 1
 		off_skill =~ off_gar_60 + x_gf_60 + scf_60_rel + total_points_60
@@ -32,5 +59,4 @@ group: D
 		
 '
 
-fit <- sem(model = model, data = all_data_processed, cluster = "player", group = "position")
-test <- tibble(player = unique(all_data_processed %>% filter(position == "D") %>% select(player) %>% pull()), off_score = lavPredict(fit, level = 2)$D[, 1], def_score = lavPredict(fit, level = 2)$D[, 2])
+fit <- sem(model = model, data = data, cluster = "player", group = "position")
