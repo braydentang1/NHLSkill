@@ -13,6 +13,7 @@ Options:
 
 library(tidyverse)
 library(recipes)
+library(fuzzyjoin)
 library(docopt)
 
 opt <- docopt(doc)
@@ -71,27 +72,21 @@ read_data_nst <- function(data_path, directory) {
 	
 }
 
-#' Finds names based on fuzzy matching - fixes inconsistencies between NaturalStatTrick
-#' and Evolving Hockey.
-#'
-#' @param player The name of a player as provided by Evolving Hockey.
-#' @param match_vector A character vector of player names from NaturalStatTrick.
-#'
-#' @return A character vector of length one representing the name of a player that
-#' is hopefully the same person as player.
-#' @export
-#'
-#' @examples 
-#' find_names("mitch marner", vector_of_nst_names)
-find_names <- function(player, match_vector) {
+preprocess_data_by_position <- function(position_spec, data) {
 	
-	if (player == "colin white (c)") {
-		"colin white"
-	} else if (player == "erik gustafsson (d)") {
-		"erik gustafsson"
-	} else {
-		agrep(player, tolower(match_vector), value = TRUE, max = 3)[1]
-	}
+	data_position_only <- data %>%
+		filter(position == position_spec)
+	
+	# Center and scale all data
+	recipe_data <- recipe(x = data_position_only) %>%
+		step_center(all_numeric(), -year) %>%
+		step_scale(all_numeric(), -year)
+	
+	# Prep and retrieve processed data	
+	prepper <- prep(recipe_data, data_position_only)
+	processed <- juice(prepper) 
+	
+	processed
 	
 }
 
@@ -99,12 +94,12 @@ main <- function(gte_years, raw_data_path, processed_out) {
 
 	# Read Evolving Hockey GAR data
 	all_GAR <- read_data_eh(raw_data_path, "gar")	%>%
-		select(player, year, team, position, toi_all, war_60, off_gar_60, def_gar_60) %>%
+		select(player, year, team, position, toi_all, war, off_gar, def_gar) %>%
 		filter(year != 2013)
 	
 	# Read Evolving Hockey RAPM data
 	all_rapm <- read_data_eh(raw_data_path, "rapm") %>%
-		select(player, year, x_gf_60, x_ga_60, cf_60, ca_60, gf_60, ga_60) %>%
+		select(player, year, x_gf, x_ga, cf, ca, gf, ga) %>%
 		filter(year != 2013)
 	
 	# Bind all Evolving Hockey data together
@@ -114,35 +109,35 @@ main <- function(gte_years, raw_data_path, processed_out) {
 	# Read in Individual Natural Stat Trick (NST) data
 	all_nst_individual <- read_data_nst(raw_data_path, "individual") %>%
 		select(
-			player, year, goals_60, first_assists_60, second_assists_60,
-			total_points_60, shots_60, shots_blocked_60, penalties_drawn_60,
-			total_penalties_60, faceoffs_won_60, faceoffs_lost_60, i_cf_60
-			) 
+			player, year, goals, first_assists, second_assists,
+			total_points, shots, shots_blocked, penalties_drawn,
+			total_penalties, faceoffs_won, faceoffs_lost, i_cf
+			)
 	
 	# Read in On Ice Relative Natural Stat Trick data
-	all_nst_relative <- read_data_nst(raw_data_path, "on-ice-rel") %>%
+	all_nst_non_relative <- read_data_nst(raw_data_path, "on-ice-non-rel") %>%
 		select(
-			player, year, hdcf_60_rel, hdca_60_rel, off_zone_starts_60,
-			def_zone_starts_60, scf_60_rel, sca_60_rel
+			player, year, hdcf, hdca, off_zone_starts,
+			def_zone_starts, scf, sca
 			)
 	
 	# Read in Natural Stat Trick power play data
 	all_nst_pp <- read_data_nst(raw_data_path, "powerplay") %>%
-		select(player, year, toi_gp) %>%
-		rename(toi_gp_pp = toi_gp) 
+		select(player, year, toi) %>%
+		rename(toi_pp = toi) 
 	
 	# Read in Natural Stat Trick penalty kill data
 	all_nst_pk <- read_data_nst(raw_data_path, "penaltykill") %>%
-		select(player, year, toi_gp) %>%
-		rename(toi_gp_pk = toi_gp)
+		select(player, year, toi) %>%
+		rename(toi_pk = toi)
 	
 	# Bind all NST data together. 
 	all_nst <- reduce(
-		list(all_nst_individual, all_nst_relative, all_nst_pp, all_nst_pk),
+		list(all_nst_individual, all_nst_non_relative, all_nst_pp, all_nst_pk),
 		.f = function(x, y) left_join(x, y, by = c("player", "year"))) %>%
 		mutate(player = tolower(player),
-					 toi_gp_pp = ifelse(is.na(toi_gp_pp), 0, toi_gp_pp),
-					 toi_gp_pk = ifelse(is.na(toi_gp_pk), 0, toi_gp_pk)) %>%
+					 toi_pp = ifelse(is.na(toi_pp), 0, toi_pp),
+					 toi_pk = ifelse(is.na(toi_pk), 0, toi_pk)) %>%
 		mutate(player = case_when(
 			player == "michael matheson" ~ "mike matheson",
 			player == "christopher tanev" ~ "chris tanev",
@@ -153,14 +148,28 @@ main <- function(gte_years, raw_data_path, processed_out) {
 	# Combine all data together from both NST and Evolving Hockey
 	all_data <- left_join(all_eh, all_nst, by = c("player", "year"))
 	
-	# Find the player who are missing due to different naming conventions and fix 
-	# their names
+	last_names_na <- tibble(player = as.character(
+		all_data %>%
+		filter(rowSums(is.na(.)) > 0) %>%
+		select(player) %>%
+		pull() %>%
+		str_split(., " ") %>%
+		map(., .f = function(x) x[[2]])
+		)) %>%
+		mutate(player = case_when(
+			player == "st" ~ "st. louis",
+			player == "white" ~ "colin white",
+			TRUE ~ player
+		)) 
+	
 	all_na <- all_data %>%
 		filter(rowSums(is.na(.)) > 0) %>%
-		rowwise() %>%
-		mutate(player = find_names(player, all_nst$player)) %>%
+		select(-player) %>%
+		bind_cols(., last_names_na) %>%
 		select_if(~sum(!is.na(.)) > 0) %>%
-		left_join(., all_nst, by = c("player", "year"))
+		fuzzy_left_join(all_nst, by = c("player", "year"), match_fun = list(function(x, y) str_detect(y, x), function(x, y) x == y)) %>%
+		select(-player.x, -year.x) %>%
+		rename(player = player.y, year = year.y)
 	
 	# Remove the missing rows and add back the players with non-missing values
 	# Group all forwards and defencemen together. Create the Game Score variable.
@@ -178,20 +187,16 @@ main <- function(gte_years, raw_data_path, processed_out) {
 			position == "C/L" ~ "F",
 			TRUE ~ position
 			)),
-			game_score_60 = 0.75 * goals_60 + 0.7 * first_assists_60 + 0.55 * second_assists_60 + 
-			0.07 * shots_60 + 0.05 * shots_blocked_60 + 0.15 * penalties_drawn_60 -
-			0.15 * total_penalties_60 + 0.01 * faceoffs_won_60 - 0.01 * faceoffs_lost_60 +
-			0.05 * cf_60 - 0.05 * ca_60 + 0.15 * gf_60 - 0.15 * ga_60
+			game_score = 0.75 * goals + 0.7 * first_assists + 0.55 * second_assists + 
+			0.07 * shots + 0.05 * shots_blocked + 0.15 * penalties_drawn -
+			0.15 * total_penalties + 0.01 * faceoffs_won - 0.01 * faceoffs_lost +
+			0.05 * cf - 0.05 * ca + 0.15 * gf - 0.15 * ga
 			) 
 	
-	# Center and scale all data
-	recipe_data <- recipe(x = all_data) %>%
-		step_center(all_numeric(), -year) %>%
-		step_scale(all_numeric(), -year)
+
+	all_positions <- as.character(unique(all_data$position))
 	
-	# Apply this processing to the data
-	prepper <- prep(recipe_data, all_data)
-	all_data_processed <- juice(prepper) 
+	all_data_processed <- bind_rows(map(all_positions, .f = preprocess_data_by_position, data = all_data))
 	
 	# Parse years from command line
 	years <- as.numeric(str_split(gte_years, ",")[[1]])

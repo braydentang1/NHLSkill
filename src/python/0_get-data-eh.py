@@ -99,7 +99,7 @@ def main(chromedriver_path, path_out, years, min_toi, google_email, google_passw
 					'%22&gar_sk_group=%22Team%2C%20Season%22&gar_sk_base=%22Replacement%22&gar_sk_range=\
 					%22Seasons%22&gar_sk_toi_ev=%220%22&gar_sk_age1=%2217%22&gar_sk_players=null&gar_sk_info=%22No%22&gar_sk_toi_sh=%220%22&gar_sk_toi_pp=\
 					%220%22&gar_sk_dft_yr=%22All%22&gar_sk_pos=%22All%22&gar_sk_toi_all=%22' + str(min_toi_new) + '%22&gar_sk_team=\
-					%22All%22&gar_sk_age2=%2250%22&gar_sk_type=%22Rates%22'
+					%22All%22&gar_sk_age2=%2250%22&gar_sk_type=%22Totals%22'
 				)
 				
 		# The download button on Evolving Hockey is bugged and just defaults to the regular page. Sigh....	
@@ -112,7 +112,7 @@ def main(chromedriver_path, path_out, years, min_toi, google_email, google_passw
 				driver.get(
 					'https://evolving-hockey.com/?_inputs_&rapm_sk_age2=%2250%22&rapm_sk_table=%22Single-Season%22&rapm_sk_season=\
 					%22' + str(year-1) + str(year) + '%22&rapm_sk_dft_yr=%22All%22&dir=%22RAPM%20Skater%20Tables%22&\
-					rapm_sk_type=%22Rates%22&rapm_sk_info=%22No%22&rapm_sk_pos=%22All%22&rapm_sk_span=%22Regular%22&\
+					rapm_sk_type=%22Totals%22&rapm_sk_info=%22No%22&rapm_sk_pos=%22All%22&rapm_sk_span=%22Regular%22&\
 					rapm_sk_toi=%220%22&rapm_sk_team=%22All%22&rapm_sk_str=%22EV%22&rapm_sk_range=%22Seasons%22\
 					&rapm_sk_group=%22Season%22&rapm_sk_age1=%2217%22&rapm_sk_players=null'
 				)

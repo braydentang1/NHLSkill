@@ -74,10 +74,10 @@ def main(chromedriver_path, path_out, years, min_toi):
 		time.sleep(10)
 		os.rename(path_out + '/raw/' + os.listdir(path_out + '/raw')[0], path_out + '/nst/on-ice-rel/' + str(year) + '_' + str(min_toi_new) + ".csv")
 	
-	# Navigate to path for on-ice rates, not relative
+	# Navigate to path for on-ice totals, not relative
 		driver.get(
 			'http://www.naturalstattrick.com/playerteams.php?fromseason=' + str(year-1) + str(year)+ '&thruseason=' + str(year-1) + str(year) + '&stype=2&\
-			sit=5v5&score=all&stdoi=oi&rate=y&team=ALL&pos=S&loc=B&toi=' + str(min_toi_new) + '&gpfilt=gpteam&fd=&td=&tgp=410' + '&lines=single&draftteam=ALL'
+			sit=5v5&score=all&stdoi=oi&rate=n&team=ALL&pos=S&loc=B&toi=' + str(min_toi_new) + '&gpfilt=gpteam&fd=&td=&tgp=410' + '&lines=single&draftteam=ALL'
 		)
 
 		time.sleep(40)
@@ -85,11 +85,11 @@ def main(chromedriver_path, path_out, years, min_toi):
 		time.sleep(10)
 		os.rename(path_out + '/raw/' + os.listdir(path_out + '/raw')[0], path_out + '/nst/on-ice-non-rel/' + str(year) + '_' + str(min_toi_new) + ".csv")
 
-		# Navigate to page for individual rates
+		# Navigate to page for individual totals
 
 		driver.get(
 			'http://www.naturalstattrick.com/playerteams.php?fromseason=' + str(year-1) + str(year)+ '&thruseason=' + str(year-1) + str(year) + '&stype=2&\
-			sit=5v5&score=all&stdoi=std&rate=y&team=ALL&pos=S&loc=B&toi=' + str(min_toi_new) + '&gpfilt=gpteam&fd=&td=&tgp=410' + '&lines=single&draftteam=ALL'
+			sit=5v5&score=all&stdoi=std&rate=n&team=ALL&pos=S&loc=B&toi=' + str(min_toi_new) + '&gpfilt=gpteam&fd=&td=&tgp=410' + '&lines=single&draftteam=ALL'
 		)
 
 		time.sleep(40)
@@ -100,7 +100,7 @@ def main(chromedriver_path, path_out, years, min_toi):
 		# Get TOI stats for powerplay
 		driver.get(
 			'https://www.naturalstattrick.com/playerteams.php?fromseason=' + str(year-1) + str(year) + '&thruseason=' + str(year-1) + str(year) + '&\
-			stype=2&sit=pp&score=all&stdoi=std&rate=y&team=ALL&pos=S&loc=B&toi=' + str(min_toi_new) + '&gpfilt=none&fd=&td=&tgp=410&lines=single&draftteam=ALL'
+			stype=2&sit=pp&score=all&stdoi=std&rate=n&team=ALL&pos=S&loc=B&toi=' + str(min_toi_new) + '&gpfilt=none&fd=&td=&tgp=410&lines=single&draftteam=ALL'
 		)
 
 		time.sleep(40)
@@ -111,7 +111,7 @@ def main(chromedriver_path, path_out, years, min_toi):
 		# Get TOI stats for penalty kill
 		driver.get(
 			'https://www.naturalstattrick.com/playerteams.php?fromseason=' + str(year-1) + str(year) + '&thruseason=' + str(year-1) + str(year) + '&\
-			stype=2&sit=pk&score=all&stdoi=std&rate=y&team=ALL&pos=S&loc=B&toi=' + str(min_toi_new) + '&gpfilt=none&fd=&td=&tgp=410&lines=single&draftteam=ALL'
+			stype=2&sit=pk&score=all&stdoi=std&rate=n&team=ALL&pos=S&loc=B&toi=' + str(min_toi_new) + '&gpfilt=none&fd=&td=&tgp=410&lines=single&draftteam=ALL'
 		)
 
 		time.sleep(40)
