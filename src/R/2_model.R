@@ -14,8 +14,8 @@ get_latent_vars <- function(model) {
 	
 	tibble(
 		player = model@Data@Lp[[1]]$cluster.id[[2]],
-		off_score = lavPredict(model, level = 2)[, 1],
-		def_score = lavPredict(model, level = 2)[, 2]
+		off_contrib = lavPredict(model, level = 2)[, 1],
+		def_contrib = lavPredict(model, level = 2)[, 2]
 		)
 	
 }
@@ -47,18 +47,34 @@ fit_model_year <- function(year, model_code) {
 
 model_2019 <- '
 level: 1
-	off_skill =~ off_gar + x_gf + scf + total_points
-	def_skill =~ def_gar + x_ga
+	off_contribution =~ off_gar + x_gf + scf + game_score
+	def_contribution =~ def_gar + x_ga + game_score
 	
 	x_gf ~~ scf
 	off_gar ~~ x_gf
 	
 level: 2
-	off_skill =~ off_gar + x_gf + scf + total_points
-	def_skill =~ def_gar + x_ga
+	off_contribution =~ off_gar + x_gf + scf + game_score
+	def_contribution =~ def_gar + x_ga + game_score
 	
 	x_gf ~~ scf
 	
+'
+
+model_2019_def <- '
+
+level: 1
+	off_contribution =~ off_gar + x_gf + scf + game_score
+	def_contribution =~ def_gar + x_ga + game_score
+
+	off_gar ~~ x_gf
+
+level: 2
+	off_contribution =~ off_gar + x_gf + scf + game_score
+	def_contribution =~ def_gar + x_ga + game_score
+
+	scf ~~ def_gar
+
 '
 
 my_model <- fit_model_year(2019, model_2019)
