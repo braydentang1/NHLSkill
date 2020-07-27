@@ -196,13 +196,13 @@ main <- function(year_seasons, raw_data_path, processed_out_gte, processed_out_i
 	map(years, .f = function(x) {
 		all_data_processed %>%
 			filter(year >= x) %>%
-			write_rds(., path = paste0(processed_out_gte, "/", "gte_", x, ".rds"))
+			write_rds(., path = paste0(processed_out_gte, "/", x, ".rds"))
 	})
 	
 	map(years, .f = function(x) {
 		all_data_processed %>%
 			filter(year == x) %>%
-			write_rds(., path = paste0(processed_out_indiv, "/", "indiv_", x, ".rds"))
+			write_rds(., path = paste0(processed_out_indiv, "/", x, ".rds"))
 	})
 	
 }

@@ -75,15 +75,18 @@ main <- function(path_data, model_for_path, model_def_path, path_out) {
 	
 	# Read in all of the processed data file paths
 	all_processed_data_file_names <- list.files(path_data, full.names = TRUE)
+	year_labels <- list.files(path_data, full.names = FALSE) %>%
+		str_extract(., "[^.]+") %>%
+		as.numeric()
 	
 	# Fit and save model results
 	all_forwards <- map(all_processed_data_file_names, .f = fit_model_year, model_code = model_for, position_player = "F") %>%
-		set_names(2014:2019) %>%
+		set_names(year_labels) %>%
 		write_rds(., paste(path_out, "forwards.rds", sep = "/"))
 	
 	# Fit and save model results
 	all_defenceman <- map(all_processed_data_file_names, .f = fit_model_year, model_code = model_def, position_player = "D") %>%
-		set_names(2014:2019) %>%
+		set_names(year_labels) %>%
 		write_rds(., paste(path_out, "defenceman.rds", sep = "/"))
 
 }

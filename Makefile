@@ -10,4 +10,4 @@ results/data/%: src/R/1_preprocess.R all_raw_data
 	
 # Fit SEM's
 results/models/%: src/R/2_model.R src/R/lavaan/model_def.txt src/R/lavaan/model_for.txt results/data/%
-	Rscript src/R/2_model.R --path_data results/data --model_for_path src/R/lavaan/model_for.txt --model_def_path src/R/lavaan/model_def.txt --path_out results/models
+	Rscript src/R/2_model.R --path_data results/data/gte --model_for_path src/R/lavaan/model_for.txt --model_def_path src/R/lavaan/model_def.txt --path_out results/models
