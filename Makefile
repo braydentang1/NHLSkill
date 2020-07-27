@@ -6,7 +6,7 @@ all_raw_data: src/python/0_get-data-nst.py src/python/0_get-data-eh.py
 
 # Preprocess data 
 results/data/%: src/R/1_preprocess.R all_raw_data
-	Rscript src/R/1_preprocess.R --gte_years "2014,2015,2016,2017,2018,2019" --raw_data_path data --processed_out results/data
+	Rscript src/R/1_preprocess.R --year_seasons "2014,2015,2016,2017,2018,2019" --raw_data_path data --processed_out_gte results/data/gte --processed_out_indiv results/data/indiv
 	
 # Fit SEM's
 results/models/%: src/R/2_model.R src/R/lavaan/model_def.txt src/R/lavaan/model_for.txt results/data/%

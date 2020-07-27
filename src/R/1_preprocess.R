@@ -3,12 +3,13 @@ A variety of variables are selected that are commonly used for assessing the pro
 but not all of the variables are actually used. The resulting data is centered and scaled. This 
 script assumes it will be run from the root of this repository.
 
-Usage: 1_preprocess.R --gte_years=<gte_years> --raw_data_path=<raw_data_path> --processed_out=<processed_out>
+Usage: 1_preprocess.R --year_seasons=<year_seasons> --raw_data_path=<raw_data_path> --processed_out_gte=<processed_out_gte> --processed_out_indiv=<processed_out_indiv>
 
 Options:
---gte_years=<gte_years> A string of years from which data from this season and onwards will be grabbed. Example: 2011,2012,2013
+--year_seasons=<year_seasons> A string of years indicating the seasons of data to preprocess.
 --raw_data_path=<raw_data_path> A file path that describes where all ofthe raw data is stored (the root), as a result of running 1_get-data_X.py
---processed_out=<processed_out> A file path that describes where to store the processed data.
+--processed_out_gte=<processed_out_gte> A file path that describes where to store the processed data for cumulative years.
+--processed_out_indiv=<processed_out_indiv> A file path that describes where to store the processed data for individual years.
 " -> doc
 
 library(tidyverse)
@@ -72,7 +73,7 @@ read_data_nst <- function(data_path, directory) {
 	
 }
 
-main <- function(gte_years, raw_data_path, processed_out) {
+main <- function(year_seasons, raw_data_path, processed_out_gte, processed_out_indiv) {
 
 	# Read Evolving Hockey GAR data
 	all_GAR <- read_data_eh(raw_data_path, "gar")	%>%
@@ -181,23 +182,34 @@ main <- function(gte_years, raw_data_path, processed_out) {
 		ungroup()
 	
 	# Parse years from command line
-	years <- as.numeric(str_split(gte_years, ",")[[1]])
+	years <- as.numeric(str_split(year_seasons, ",")[[1]])
 	
-	if (!dir.exists(processed_out)) {
-		dir.create(processed_out)
+	if (!dir.exists(processed_out_gte)) {
+		dir.create(processed_out_gte, recursive = TRUE)
+	}
+	
+	if (!dir.exists(processed_out_indiv)) {
+		dir.create(processed_out_indiv, recursive = TRUE)
 	}
 	
 	# Write .csv files
 	map(years, .f = function(x) {
 		all_data_processed %>%
 			filter(year >= x) %>%
-			write_rds(., path = paste0(processed_out, "/", "gte_", x, ".rds"))
+			write_rds(., path = paste0(processed_out_gte, "/", "gte_", x, ".rds"))
+	})
+	
+	map(years, .f = function(x) {
+		all_data_processed %>%
+			filter(year == x) %>%
+			write_rds(., path = paste0(processed_out_indiv, "/", "indiv_", x, ".rds"))
 	})
 	
 }
 
 main(
-	gte_years = opt$gte_years,
+	year_seasons = opt$year_seasons,
 	raw_data_path = opt$raw_data_path,
-	processed_out = opt$processed_out
+	processed_out_gte = opt$processed_out_gte,
+	processed_out_indiv = opt$processed_out_indiv
 )
