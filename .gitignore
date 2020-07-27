@@ -42,3 +42,4 @@ data/*
 
 chromedriver
 results/data/*
+results/models/*

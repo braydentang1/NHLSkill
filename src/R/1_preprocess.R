@@ -72,24 +72,6 @@ read_data_nst <- function(data_path, directory) {
 	
 }
 
-preprocess_data_by_position <- function(position_spec, data) {
-	
-	data_position_only <- data %>%
-		filter(position == position_spec)
-	
-	# Center and scale all data
-	recipe_data <- recipe(x = data_position_only) %>%
-		step_center(all_numeric(), -year) %>%
-		step_scale(all_numeric(), -year)
-	
-	# Prep and retrieve processed data	
-	prepper <- prep(recipe_data, data_position_only)
-	processed <- juice(prepper) 
-	
-	processed
-	
-}
-
 main <- function(gte_years, raw_data_path, processed_out) {
 
 	# Read Evolving Hockey GAR data
@@ -193,10 +175,10 @@ main <- function(gte_years, raw_data_path, processed_out) {
 			0.05 * cf - 0.05 * ca + 0.15 * gf - 0.15 * ga
 			) 
 	
-
-	all_positions <- as.character(unique(all_data$position))
-	
-	all_data_processed <- bind_rows(map(all_positions, .f = preprocess_data_by_position, data = all_data))
+	all_data_processed <- all_data %>%
+		group_by(year, position, .drop = FALSE) %>%
+		mutate_if(is.numeric, .funs = list(function(x) (x - mean(x)) / sd(x))) %>%
+		ungroup()
 	
 	# Parse years from command line
 	years <- as.numeric(str_split(gte_years, ",")[[1]])
