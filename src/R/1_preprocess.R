@@ -3,10 +3,11 @@ A variety of variables are selected that are commonly used for assessing the pro
 but not all of the variables are actually used. The resulting data is centered and scaled. This 
 script assumes it will be run from the root of this repository.
 
-Usage: 1_preprocess.R --year_seasons=<year_seasons> --raw_data_path=<raw_data_path> --processed_out_gte=<processed_out_gte> --processed_out_indiv=<processed_out_indiv>
+Usage: 1_preprocess.R --year_seasons_gte=<year_seasons_gte> --year_seasons_indiv=<year_seasons_indiv> --raw_data_path=<raw_data_path> --processed_out_gte=<processed_out_gte> --processed_out_indiv=<processed_out_indiv>
 
 Options:
---year_seasons=<year_seasons> A string of years indicating the seasons of data to preprocess.
+--year_seasons_gte=<year_seasons_gte> A string of years indicating the seasons of data to preprocess (cumulative data, starting from X)
+--year_seasons_indiv<year_seasons_indiv> A string of years indicating the seasons of data to preprocess (individual years of data).
 --raw_data_path=<raw_data_path> A file path that describes where all ofthe raw data is stored (the root), as a result of running 1_get-data_X.py
 --processed_out_gte=<processed_out_gte> A file path that describes where to store the processed data for cumulative years.
 --processed_out_indiv=<processed_out_indiv> A file path that describes where to store the processed data for individual years.
@@ -63,7 +64,8 @@ read_data_nst <- function(data_path, directory) {
 	all_files <- list.files(paste(data_path, "nst", directory, sep = "/"))
 	
 	all_data <- map(
-		all_files, .f = function(x) read_csv(paste(data_path, "nst", directory, x, sep = "/"), na = c("-")) %>%
+		all_files,
+		.f = function(x) read_csv(paste(data_path, "nst", directory, x, sep = "/"), na = c("-")) %>%
 										janitor::clean_names() %>%
 										mutate(year = as.numeric(rep(str_extract(x, "[^_]*")))) %>%
 										select(-x1) %>%
@@ -73,7 +75,8 @@ read_data_nst <- function(data_path, directory) {
 	
 }
 
-main <- function(year_seasons, raw_data_path, processed_out_gte, processed_out_indiv) {
+main <- function(year_seasons_gte, year_seasons_indiv, raw_data_path,
+								 processed_out_gte, processed_out_indiv) {
 
 	# Read Evolving Hockey GAR data
 	all_GAR <- read_data_eh(raw_data_path, "gar")	%>%
@@ -150,7 +153,10 @@ main <- function(year_seasons, raw_data_path, processed_out_gte, processed_out_i
 		select(-player) %>%
 		bind_cols(., last_names_na) %>%
 		select_if(~sum(!is.na(.)) > 0) %>%
-		fuzzy_left_join(all_nst, by = c("player", "year"), match_fun = list(function(x, y) str_detect(y, x), function(x, y) x == y)) %>%
+		fuzzy_left_join(
+			all_nst,
+			by = c("player", "year"),
+			match_fun = list(function(x, y) str_detect(y, x), function(x, y) x == y)) %>%
 		select(-player.x, -year.x) %>%
 		rename(player = player.y, year = year.y)
 	
@@ -182,7 +188,8 @@ main <- function(year_seasons, raw_data_path, processed_out_gte, processed_out_i
 		ungroup()
 	
 	# Parse years from command line
-	years <- as.numeric(str_split(year_seasons, ",")[[1]])
+	years <- as.numeric(str_split(year_seasons_gte, ",")[[1]])
+	years_indiv <- as.numeric(str_split(year_seasons_indiv, ",")[[1]])
 	
 	if (!dir.exists(processed_out_gte)) {
 		dir.create(processed_out_gte, recursive = TRUE)
@@ -199,7 +206,7 @@ main <- function(year_seasons, raw_data_path, processed_out_gte, processed_out_i
 			write_rds(., path = paste0(processed_out_gte, "/", x, ".rds"))
 	})
 	
-	map(years, .f = function(x) {
+	map(years_indiv, .f = function(x) {
 		all_data_processed %>%
 			filter(year == x) %>%
 			write_rds(., path = paste0(processed_out_indiv, "/", x, ".rds"))
@@ -208,7 +215,8 @@ main <- function(year_seasons, raw_data_path, processed_out_gte, processed_out_i
 }
 
 main(
-	year_seasons = opt$year_seasons,
+	year_seasons_gte = opt$year_seasons_gte,
+	year_seasons_indiv = opt$year_seasons_indiv,
 	raw_data_path = opt$raw_data_path,
 	processed_out_gte = opt$processed_out_gte,
 	processed_out_indiv = opt$processed_out_indiv

@@ -20,19 +20,35 @@ opt <- docopt(doc)
 #' in the data used to fit the model.
 #'
 #' @param model A lavaan fitted model.
+#' @param level If 2, return grouped estimates of latent variables 
+#' (i.e. random intercept model), otherwise set to 1, which returns individual levels.
+#' Will throw an error if model is not multilevel.
 #' @return A tibble with columns player, off_score, and def_score.
 #' @export
 #'
 #' @examples
 #' get_latent_vars(my_lavaan_model)
-get_latent_vars <- function(model) {
+get_latent_vars <- function(model, level = 2) {
 	
-	tibble(
-		player = model@Data@Lp[[1]]$cluster.id[[2]],
-		off_score = lavPredict(model, level = 2)[, 1],
-		def_score = lavPredict(model, level = 2)[, 2]
+	if (all(model@Model@multilevel == FALSE & level == 2)) {
+		stop("Level = 2 but the fitted model is not multilevel. Either set level = 1 or
+				 fit a multilevel model.")
+	} 
+	
+	if (level == 2) {
+		tibble(
+			player = model@Data@Lp[[1]]$cluster.id[[2]],
+			off_score = lavPredict(model, level = 2)[, 1],
+			def_score = lavPredict(model, level = 2)[, 2]
+			)
+	} else {
+		tibble(
+			player = rep(NA, model@Data@nobs[[1]]),
+			off_score = lavPredict(model, level = 1)[, 1],
+			def_score = lavPredict(model, level = 1)[, 2]
 		)
-	
+	}
+		
 }
 
 #' Fit a lavvaan model with a given model code on data from a specific year.
@@ -41,23 +57,28 @@ get_latent_vars <- function(model) {
 #' @param model_code A string describing a structural equation model.
 #' @param position_player A string, either "D" or "F" representing the position 
 #' to model.
-#' @param path_data A file path describing where all of the preprocessed data is located.
-#'
+#' @param multilevel If TRUE, fits a multilevel model. Default is TRUE. 
+#' 
 #' @return A list with extracted factor scores, model AIC, the actual model itself, and the data used
 #' to fit the model.
 #' @export
 #'
 #' @examples
-#' fit_model_year("results/data/gte_2015.rds", my_model_code, "F")
-fit_model_year <- function(data_file, model_code, position_player, path_data) {
+#' fit_model_year("results/data/2015.rds", my_model_code, "F")
+fit_model_year <- function(data_file, model_code, position_player, multilevel = TRUE) {
 	
 	data <- read_rds(paste0(data_file)) %>%
 		filter(position == position_player)
 	
-	model <- sem(model = model_code, data = data, cluster = "player")
-	
-	scores <- get_latent_vars(model)
-	
+	if (multilevel == TRUE) {
+		model <- sem(model = model_code, data = data, cluster = "player")
+		scores <- get_latent_vars(model, level = 2) 
+	} else {
+		model <- sem(model = model_code, data = data)
+		scores <- get_latent_vars(model, level = 1) %>%
+			mutate(player = data$player)
+	}
+
 	list(factor_scores = scores, aic = AIC(model), model = model, data = data)
 	
 }
@@ -80,12 +101,24 @@ main <- function(path_data, model_for_path, model_def_path, path_out) {
 		as.numeric()
 	
 	# Fit and save model results
-	all_forwards <- map(all_processed_data_file_names, .f = fit_model_year, model_code = model_for, position_player = "F") %>%
+	all_forwards <- map(
+		all_processed_data_file_names,
+		.f = fit_model_year,
+		model_code = model_for,
+		position_player = "F",
+		multilevel = TRUE
+		) %>%
 		set_names(year_labels) %>%
 		write_rds(., paste(path_out, "forwards.rds", sep = "/"))
 	
 	# Fit and save model results
-	all_defenceman <- map(all_processed_data_file_names, .f = fit_model_year, model_code = model_def, position_player = "D") %>%
+	all_defenceman <- map(
+		all_processed_data_file_names,
+		.f = fit_model_year,
+		model_code = model_def,
+		position_player = "D",
+		multilevel = TRUE
+		) %>%
 		set_names(year_labels) %>%
 		write_rds(., paste(path_out, "defenceman.rds", sep = "/"))
 
