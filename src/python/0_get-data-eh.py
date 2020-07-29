@@ -6,12 +6,12 @@ message or this script will fail.
 Usage: 0_scrape.py --chromedriver_path=<chromedriver_path> --path_out=<path_out> --years=<years> --min_toi=<min_toi> --google_email=<google_email> --google_password=<google_password>
 
 Options:
---chromedriver_path=<chromedriver_path> A file path that describes where the web driver executable is.
---path_out=<path_out> A file path that describes where to output the raw data.
---years=<years> A string of years to grab data from. Years should be comma separated with no whitespace (i.e. "2013,2014,2015")
---min_toi<min_toi> An integer specifying the minimum time on ice a player needs to be included in the dataset.
---google_email=<google_email> Your Google email address that has Patreon enabled for EvolvingHockey.
---google_password=<google_password> Password for your Google email above.
+--chromedriver_path=<chromedriver_path>  A file path that describes where the web driver executable is.
+--path_out=<path_out>  A file path that describes where to output the raw data.
+--years=<years>  A string of years to grab data from. Years should be comma separated with no whitespace (i.e. "2013,2014,2015")
+--min_toi<min_toi>  An integer specifying the minimum time on ice a player needs to be included in the dataset.
+--google_email=<google_email>  Your Google email address that has Patreon enabled for EvolvingHockey.
+--google_password=<google_password>  Password for your Google email above.
 '''
 
 from bs4 import BeautifulSoup

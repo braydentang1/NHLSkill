@@ -7,7 +7,8 @@ all_raw_data: src/python/0_get-data-nst.py src/python/0_get-data-eh.py
 	python src/python/0_get-data-nst.py --chromedriver ${chromedriver_path} \
 	--path_out "data" --years "2011,2012,2013,2014,2015,2016,2017,2018,2019,2020" \
 	--min_toi 0
-
+	python src/python/0_get-data-hr.py --path_out "data/hr" --years "2011,2012,2013,2014,2015,2016,2017,2018,2019,2020"
+	
 # Preprocess data 
 results/data/gte/% results/data/indiv/%: src/R/1_preprocess.R all_raw_data
 	Rscript src/R/1_preprocess.R --year_seasons_gte "2014,2015,2016,2017,2018,2019" \
@@ -18,4 +19,7 @@ results/data/gte/% results/data/indiv/%: src/R/1_preprocess.R all_raw_data
 results/models/%: src/R/2_model.R src/R/lavaan/% results/data/gte/% results/data/indiv/%
 	Rscript src/R/2_model.R --path_data results/data/gte \
 	--model_for_path src/R/lavaan/model_for.txt --model_def_path src/R/lavaan/model_def.txt \
-	--path_out results/models
+	--path_out results/models/gte -m Y
+	Rscript src/R/2_model.R --path_data results/data/indiv \
+	--model_for_path src/R/lavaan/model_for_indiv.txt --model_def_path src/R/lavaan/model_def_indiv.txt \
+	--path_out results/models/indiv -m N

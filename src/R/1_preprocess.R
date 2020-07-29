@@ -6,11 +6,11 @@ script assumes it will be run from the root of this repository.
 Usage: 1_preprocess.R --year_seasons_gte=<year_seasons_gte> --year_seasons_indiv=<year_seasons_indiv> --raw_data_path=<raw_data_path> --processed_out_gte=<processed_out_gte> --processed_out_indiv=<processed_out_indiv>
 
 Options:
---year_seasons_gte=<year_seasons_gte> A string of years indicating the seasons of data to preprocess (cumulative data, starting from X)
---year_seasons_indiv<year_seasons_indiv> A string of years indicating the seasons of data to preprocess (individual years of data).
---raw_data_path=<raw_data_path> A file path that describes where all ofthe raw data is stored (the root), as a result of running 1_get-data_X.py
---processed_out_gte=<processed_out_gte> A file path that describes where to store the processed data for cumulative years.
---processed_out_indiv=<processed_out_indiv> A file path that describes where to store the processed data for individual years.
+--year_seasons_gte=<year_seasons_gte>  A string of years indicating the seasons of data to preprocess (cumulative data, starting from X)
+--year_seasons_indiv<year_seasons_indiv>  A string of years indicating the seasons of data to preprocess (individual years of data).
+--raw_data_path=<raw_data_path>  A file path that describes where all ofthe raw data is stored (the root), as a result of running 1_get-data_X.py
+--processed_out_gte=<processed_out_gte>  A file path that describes where to store the processed data for cumulative years.
+--processed_out_indiv=<processed_out_indiv>  A file path that describes where to store the processed data for individual years.
 " -> doc
 
 library(tidyverse)

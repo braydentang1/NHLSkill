@@ -4,10 +4,10 @@ This script automates the download of .csv's from NaturalStatTrick.
 Usage: 0_scrape.py --chromedriver_path=<chromedriver_path> --path_out=<path_out> --years=<years> --min_toi=<min_toi>
 
 Options:
---chromedriver_path=<chromedriver_path> A file path that describes where the web driver executable is.
---path_out=<path_out> A file path that describes where to output the raw data.
---years=<years> A string of comma separated values that describe the years of data to pull from. Example: "2016,2017,2018".
---min_toi=<min_toi> An integer representing minimum time of ice desired.
+--chromedriver_path=<chromedriver_path>  A file path that describes where the web driver executable is.
+--path_out=<path_out>  A file path that describes where to output the raw data.
+--years=<years>  A string of comma separated values that describe the years of data to pull from. Example: "2016,2017,2018".
+--min_toi=<min_toi>  An integer representing minimum time of ice desired.
 '''
 
 import numpy as np

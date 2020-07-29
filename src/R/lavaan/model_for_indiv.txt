@@ -1,5 +1,5 @@
-off_contribution =~ off_gar + x_gf + scf + game_score
-def_contribution =~ def_gar + x_ga + game_score
+off_contribution =~ off_gar + x_gf + scf + total_points
+def_contribution =~ def_gar + x_ga
 
 x_gf ~~ scf
 off_gar ~~ x_gf
