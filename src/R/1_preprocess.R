@@ -75,6 +75,34 @@ read_data_nst <- function(data_path, directory) {
 	
 }
 
+#' Read the saved HockeyReference OPS/DPS data.
+#'
+#' @param data_path A file path that describes where all the raw HockeyReference data is being stored, relative to the root
+#' directory.
+#' @param directory A file path that describes where all of the .csv files are for a particular scenario. This
+#' should be a relative path from data_path. 
+#'
+#' @return A tibble of all of the .csv files combined.
+#' @export
+#'
+#' @examples
+#' read_data_eh("data", "gar")
+read_data_hr <- function(data_path, directory) {
+	
+	all_files <- list.files(paste(data_path, "hr", directory, sep = "/"))
+	
+	all_data <- map(
+		all_files, .f = function(x) read_csv(paste(data_path, "hr", directory, x, sep = "/"), na = c("-")) %>%
+			select(-X1) %>%
+			janitor::clean_names() %>%
+			mutate(year = as.numeric(rep(str_extract(x, "[^.]*")))))
+	
+	bind_rows(all_data)
+	
+}
+
+
+
 main <- function(year_seasons_gte, year_seasons_indiv, raw_data_path,
 								 processed_out_gte, processed_out_indiv) {
 
@@ -134,6 +162,7 @@ main <- function(year_seasons_gte, year_seasons_indiv, raw_data_path,
 	# Combine all data together from both NST and Evolving Hockey
 	all_data <- left_join(all_eh, all_nst, by = c("player", "year"))
 	
+	# Get all players who have missing NST data
 	last_names_na <- tibble(player = as.character(
 		all_data %>%
 		filter(rowSums(is.na(.)) > 0) %>%
@@ -148,6 +177,8 @@ main <- function(year_seasons_gte, year_seasons_indiv, raw_data_path,
 			TRUE ~ player
 		)) 
 	
+	# Fuzzy join i.e. joins if year matches and last name is detected in the full
+	# name of other skater
 	all_na <- all_data %>%
 		filter(rowSums(is.na(.)) > 0) %>%
 		select(-player) %>%
@@ -182,6 +213,52 @@ main <- function(year_seasons_gte, year_seasons_indiv, raw_data_path,
 			0.05 * cf - 0.05 * ca + 0.15 * gf - 0.15 * ga
 			) 
 	
+	# Read in OPS/DPS Hockey Reference Data
+	all_hr <- read_data_hr(raw_data_path, "point_shares") %>%
+		mutate(player = tolower(player)) 
+	
+	# Combined with the preprocessed combined EH/NST data
+	combined_hr_data <- all_hr %>%
+		right_join(., all_data, by = c("player", "year")) 
+	
+	# Find player names who are missing - fill in those with phonetic characters
+	# or who have last names of another player in the same year (alexander nylander, talbot)
+	last_names_na <- tibble(player = as.character(combined_hr_data %>%
+		filter(is.na(ops)) %>%
+		select(player) %>%
+		pull() %>%		
+		str_split(., " ") %>%
+		map(., .f = function(x) x[[2]]))) %>%
+		mutate(player = case_when(
+			player == "nylander" ~ "alexander nylander",
+			player == "talbot" ~ "maxime talbot",
+			player == "borgstrom" ~ "henrik borgström",
+			player == "kubalik" ~ "dominik kubalík",
+			TRUE ~ player
+		))
+		
+	# Fuzzy join again, but because HockeyReference creates two separate rows for
+	# a player who is traded mid season we have to group by and summarize.
+	all_na <- combined_hr_data %>%
+		filter(rowSums(is.na(.)) > 0) %>%
+		select(-player) %>%
+		bind_cols(., last_names_na) %>%
+		select_if(~sum(!is.na(.)) > 0) %>%
+		fuzzy_left_join(
+			all_hr,
+			by = c("player", "year"),
+			match_fun = list(function(x, y) str_detect(y, x), function(x, y) x == y)) %>%
+		select(-player.x, -year.x) %>%
+		rename(player = player.y, year = year.y) %>%
+		group_by(player, year, .drop = FALSE) %>%
+		summarize(ops = sum(ops), dps = sum(dps))
+	
+	# Bind back missing rows with actual matched data
+	all_data <- combined_hr_data %>% 
+		filter(rowSums(is.na(.)) == 0) %>%
+		bind_rows(all_na)
+	
+	# Center and scale by year and position
 	all_data_processed <- all_data %>%
 		group_by(year, position, .drop = FALSE) %>%
 		mutate_if(is.numeric, .funs = list(function(x) (x - mean(x)) / sd(x))) %>%

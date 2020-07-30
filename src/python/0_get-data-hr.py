@@ -21,8 +21,8 @@ opt = docopt(__doc__)
 
 def main(path_out, years):
 
-	if not os.path.exists(path_out):
-		os.makedirs(path_out)
+	if not os.path.exists(path_out + '/point_shares'):
+		os.makedirs(path_out + '/point_shares')
 
 	all_years = [int(item) for item in re.split(',', years)]
 	
@@ -45,11 +45,11 @@ def main(path_out, years):
 			dps = page_souped.select('.right:nth-child(27)')
 		
 		all_names = [name.text for name in player_names]
-		all_ops = [ops_val.text for ops_val in ops]
-		all_dps = [dps_val.text for dps_val in dps]
+		all_ops = [float(ops_val.text) for ops_val in ops]
+		all_dps = [float(dps_val.text) for dps_val in dps]
 		
 		all_data = pd.DataFrame({'player': all_names, 'ops': all_ops, 'dps': all_dps})
-		all_data.to_csv(path_out + "/" + str(year) + '.csv')
+		all_data.to_csv(path_out + "/point_shares/" + str(year) + '.csv')
 	
 main(
 	opt['--path_out'],
