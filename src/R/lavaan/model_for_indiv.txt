@@ -1,4 +1,4 @@
-off_contribution =~ off_gar + x_gf + scf + total_points
+off_contribution =~ off_gar + x_gf + scf + ops
 def_contribution =~ def_gar + x_ga
 
 x_gf ~~ scf

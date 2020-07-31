@@ -49,6 +49,7 @@ def main(path_out, years):
 		all_dps = [float(dps_val.text) for dps_val in dps]
 		
 		all_data = pd.DataFrame({'player': all_names, 'ops': all_ops, 'dps': all_dps})
+		all_data = all_data.groupby('player').first().reset_index()
 		all_data.to_csv(path_out + "/point_shares/" + str(year) + '.csv')
 	
 main(
