@@ -1,12 +1,11 @@
 level: 1
-	off_contribution =~ off_gar + x_gf + scf + game_score
+	off_contribution =~ off_gar + x_gf + scf + ops
 	def_contribution =~ def_gar
 	
-	x_gf ~~ game_score	
-	scf ~~ game_score
-	
+    off_gar ~~ scf
+    x_gf ~~ ops	
+
 level: 2
-	off_contribution =~ off_gar + x_gf + scf + game_score
+	off_contribution =~ off_gar + x_gf + scf + ops
 	def_contribution =~ def_gar
 	
-	scf ~~ game_score
