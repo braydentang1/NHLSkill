@@ -122,6 +122,7 @@ main <- function(year_seasons_gte, year_seasons_indiv, raw_data_path,
 	
 	# Read in Individual Natural Stat Trick (NST) data
 	all_nst_individual <- read_data_nst(raw_data_path, "individual") %>%
+		filter(!(player == "Sebastian Aho" & position == "D")) %>%
 		select(
 			player, year, goals, first_assists, second_assists,
 			total_points, shots, shots_blocked, penalties_drawn,
@@ -130,6 +131,7 @@ main <- function(year_seasons_gte, year_seasons_indiv, raw_data_path,
 	
 	# Read in On Ice Relative Natural Stat Trick data
 	all_nst_non_relative <- read_data_nst(raw_data_path, "on-ice-non-rel") %>%
+		filter(!(player == "Sebastian Aho" & position == "D")) %>%
 		select(
 			player, year, hdcf, hdca, off_zone_starts,
 			def_zone_starts, scf, sca
@@ -137,13 +139,15 @@ main <- function(year_seasons_gte, year_seasons_indiv, raw_data_path,
 	
 	# Read in Natural Stat Trick power play data
 	all_nst_pp <- read_data_nst(raw_data_path, "powerplay") %>%
+		filter(!(player == "Sebastian Aho" & position == "D")) %>%
 		select(player, year, toi) %>%
 		rename(toi_pp = toi) 
 	
 	# Read in Natural Stat Trick penalty kill data
 	all_nst_pk <- read_data_nst(raw_data_path, "penaltykill") %>%
+		filter(!(player == "Sebastian Aho" & position == "D")) %>%
 		select(player, year, toi) %>%
-		rename(toi_pk = toi)
+		rename(toi_pk = toi) 
 	
 	# Bind all NST data together. 
 	all_nst <- reduce(

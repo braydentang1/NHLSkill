@@ -23,3 +23,27 @@ results/models/%: src/R/2_model.R src/R/lavaan/% results/data/gte/% results/data
 	Rscript src/R/2_model.R --path_data results/data/indiv \
 	--model_for_path src/R/lavaan/model_for_indiv.txt --model_def_path src/R/lavaan/model_def_indiv.txt \
 	--path_out results/models/indiv -m N
+	
+# Bootstrap factors
+
+results/bootstrap/%: src/R/3_bootstrap.R results/models/% src/R/lavaan/%
+	Rscript src/R/3_bootstrap.R --original_fitted_models_path results/models/gte/forwards.rds \
+	--model_file_path src/R/lavaan/model_for.txt \
+	--path_out results/bootstrap/gte/forwards \
+	-n 5000
+	-m Y
+	Rscript src/R/3_bootstrap.R --original_fitted_models_path results/models/gte/defenceman.rds \
+	--model_file_path src/R/lavaan/model_def.txt \
+	--path_out results/bootstrap/gte/defenceman \
+	-n 5000
+	-m Y
+	Rscript src/R/3_bootstrap.R --original_fitted_models_path results/models/indiv/forwards.rds \
+	--model_file_path src/R/lavaan/model_for_indiv.txt \
+	--path_out results/bootstrap/indiv/forwards \
+	-n 5000
+	-m N
+	Rscript src/R/3_bootstrap.R --original_fitted_models_path results/models/indiv/defenceman.rds \
+	--model_file_path src/R/lavaan/model_def_indiv.txt \
+	--path_out results/bootstrap/indiv/defenceman \
+	-n 5000
+	-m N

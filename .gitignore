@@ -41,5 +41,4 @@ vignettes/*.pdf
 data/*
 
 chromedriver
-results/data/*
-results/models/*
+results/*

@@ -8,7 +8,7 @@ Options:
 --model_for_path=<model_for_path> A file path leading to a text file that describes, in lavaan syntax, the SEM to be fitted for forwards.
 --model_def_path=<model_def_path> A file path leading to a text file that escribes, in lavaan syntax, the SEM to be fitted for defenceman.
 --path_out=<path_out> A file path describing where to store latent factor scores and fitted models, as .rds objects.
--m --multilevel An optional flag. Either Y/N that describes if the fitted model should me multilevel or not [default: Y].
+-m --multilevel	An optional flag. Either Y/N that describes if the fitted model should me multilevel or not [default: Y].
 " -> doc
 
 library(lavaan)
@@ -52,7 +52,7 @@ get_latent_vars <- function(model, level = 2) {
 		
 }
 
-#' Fit a lavvaan model with a given model code on data from a specific year.
+#' Fit a lavaan model with a given model code on data from a specific year.
 #'
 #' @param data_file A relative path to a processed data file, most likely obtained from running 1_processed.R.
 #' @param model_code A string describing a structural equation model.
@@ -104,8 +104,7 @@ main <- function(path_data, model_for_path, model_def_path, path_out, multilevel
 	# Read in all of the processed data file paths
 	all_processed_data_file_names <- list.files(path_data, full.names = TRUE)
 	year_labels <- list.files(path_data, full.names = FALSE) %>%
-		str_extract(., "[^.]+") %>%
-		as.numeric()
+		str_extract(., "[^.]+")
 	
 	# Fit and save model results
 	all_forwards <- map(
