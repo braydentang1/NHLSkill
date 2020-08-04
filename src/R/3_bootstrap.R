@@ -128,7 +128,8 @@ bootstrap_replicate <- function(seed, data, model_file, multilevel = TRUE) {
 		sample_cluster_counts,
 		model_code = model_file,
 		multilevel = multilevel
-		)$factor_scores
+		)$factor_scores %>%
+		bind_cols(., seed_number = rep(seed, nrow(.)))
 	
 }
 
@@ -149,10 +150,11 @@ main <- function(original_fitted_models_path, model_file_path, path_out, num_sam
 		for (i in seq_along(all_years_bootstrap)) {
 	
 			data <- all_original_models[[i]]$data
-	
+			
+			writeLines(paste("Bootstrapping Year:", start_year + i, "for model file:", model_file_path))
 			set.seed(200350623)
 			seeds <- sample(1:1000000000, replace = FALSE, size = as.numeric(num_samples))
-			all_years_bootstrap[i] <- mclapply(
+			all_years_bootstrap[[i]] <- mclapply(
 				seeds,
 				FUN = bootstrap_replicate,
 				data = data,
