@@ -25,12 +25,14 @@ opt <- docopt(doc)
 #' @param level If 2, return grouped estimates of latent variables 
 #' (i.e. random intercept model), otherwise set to 1, which returns individual levels.
 #' Will throw an error if model is not multilevel.
+#' @param newdata An optional argument. If provided, factor scores are obtained for 
+#' this dataset. Default = NULL.
 #' @return A tibble with columns player, off_score, and def_score.
 #' @export
 #'
 #' @examples
 #' get_latent_vars(my_lavaan_model)
-get_latent_vars <- function(model, level = 2) {
+get_latent_vars <- function(model, newdata = NULL, level = 2) {
 	
 	if (all(model@Model@multilevel == FALSE & level == 2)) {
 		stop("Level = 2 but the fitted model is not multilevel. Either set level = 1 or
@@ -38,24 +40,24 @@ get_latent_vars <- function(model, level = 2) {
 	} 
 	
 	if (level == 2) {
-		tibble(
-			player = model@Data@Lp[[1]]$cluster.id[[2]],
-			off_score = lavPredict(model, level = 2)[, 1],
-			def_score = lavPredict(model, level = 2)[, 2]
-		)
+		
+		factor_scores <- as_tibble(lavPredict(model, newdata = newdata, level = 2))
+		bind_cols(player = model@Data@Lp[[1]]$cluster.id[[2]], factor_scores)
+		
 	} else {
-		tibble(
-			player = rep(NA, model@Data@nobs[[1]]),
-			off_score = lavPredict(model, level = 1)[, 1],
-			def_score = lavPredict(model, level = 1)[, 2]
-		)
+		
+		factor_scores <- as_tibble(lavPredict(model, newdata = newdata, level = 1))
+		bind_cols(player = rep(NA, model@Data@nobs[[1]]), factor_scores)
+		
 	}
 	
 }
 
-#' Fit a lavvaan model with a given model code on a given dataset.
+#' Fit a lavaan model with a given model code on a given dataset.
 #'
-#' @param data A relative path to a processed data file, most likely obtained from running 1_processed.R.
+#' @param data A bootstrap sample of original_data, as a tibble/dataframe.
+#' @param original_data An optional tibble of the original dataset that `data` was
+#' bootstrapped from. Default = NULL.
 #' @param model_code A string describing a structural equation model.
 #' @param multilevel If TRUE, fits a multilevel model. Default is TRUE. 
 #' 
@@ -65,15 +67,29 @@ get_latent_vars <- function(model, level = 2) {
 #'
 #' @examples
 #' fit_model_year(forward_data, my_model_code)
-fit_bootstrap <- function(data, model_code, multilevel = TRUE) {
+fit_bootstrap <- function(data, original_data = NULL, model_code, multilevel = TRUE) {
 	
 	if (multilevel == TRUE) {
+		
+		if (!is.null(original_data)) {
+			stop("Multilevel models can only have factor scores returned using the original
+					 dataset currently in lavaan.")
+		}
+		
 		model <- sem(model = model_code, data = data, cluster = "player")
 		scores <- get_latent_vars(model, level = 2) 
 	} else {
 		model <- sem(model = model_code, data = data)
-		scores <- get_latent_vars(model, level = 1) %>%
-			mutate(player = data$player)
+		scores <- get_latent_vars(model, newdata = original_data, level = 1)
+		
+		if (is.null(original_data)) {
+			scores <- scores %>%
+				mutate(player = data$player)
+		} else {
+			scores <- scores %>%
+				mutate(player = original_data$player)
+		}
+		
 	}
 	
 	list(factor_scores = scores, aic = AIC(model), model = model, data = data)
@@ -102,34 +118,51 @@ fit_bootstrap <- function(data, model_code, multilevel = TRUE) {
 #' )
 bootstrap_replicate <- function(seed, data, model_file, multilevel = TRUE) {
 	
-	# Get all of the unique players in the dataset
-	all_clusters <- unique(data$player)
-	
-	# Get all of the original counts, since in the event we sample more years than
-	# we have available we just cap at the maximum.
-	all_original_counts <- data %>%
-		group_by(player) %>%
-		count(name = "actual_counts")
-	
-	# Sample the clusters with replacement, then sample within each cluster without replacement.
-	# If by chance the number of samples needed is larger than the actual number, cap at the total 
-	# number of observations for that cluster in the actual dataset.
-	set.seed(seed)
-	sample_cluster_counts <- tibble(player = sample(all_clusters, replace = TRUE, size = nrow(data))) %>%
-		group_by(player) %>%
-		count(name = "sample_counts") %>%
-		left_join(., all_original_counts, by = "player") %>%
-		mutate(sample_counts = ifelse(sample_counts > actual_counts, actual_counts, sample_counts)) %>%
-		left_join(., data, by = "player") %>%
-		sample_n(size = sample_counts) %>%
-		select(-sample_counts, -actual_counts)
-	
-	fit_bootstrap(
-		sample_cluster_counts,
-		model_code = model_file,
-		multilevel = multilevel
+	if (multilevel == TRUE) {
+		# Get all of the unique players in the dataset
+		all_clusters <- unique(data$player)
+		
+		# Get all of the original counts, since in the event we sample more years than
+		# we have available we just cap at the maximum.
+		all_original_counts <- data %>%
+			group_by(player) %>%
+			count(name = "actual_counts")
+		
+		# Sample the clusters with replacement, then sample within each cluster without replacement.
+		# If by chance the number of samples needed is larger than the actual number, cap at the total 
+		# number of observations for that cluster in the actual dataset.
+		set.seed(seed)
+		sample_cluster_counts <- tibble(player = sample(all_clusters, replace = TRUE, size = nrow(data))) %>%
+			group_by(player) %>%
+			count(name = "sample_counts") %>%
+			left_join(., all_original_counts, by = "player") %>%
+			mutate(sample_counts = ifelse(sample_counts > actual_counts, actual_counts, sample_counts)) %>%
+			left_join(., data, by = "player") %>%
+			sample_n(size = sample_counts) %>%
+			select(-sample_counts, -actual_counts)
+		
+		fit_bootstrap(
+			sample_cluster_counts,
+			model_code = model_file,
+			multilevel = multilevel
 		)$factor_scores %>%
-		bind_cols(., seed_number = rep(seed, nrow(.)))
+			bind_cols(., seed_number = rep(seed, nrow(.)))
+	
+	} else {
+		
+		set.seed(seed)
+		sample_cluster_counts <- data %>%
+			sample_n(size = nrow(.), replace = TRUE)
+		
+		fit_bootstrap(
+			sample_cluster_counts,
+			original_data = data,
+			model_code = model_file,
+			multilevel = multilevel
+		)$factor_scores %>%
+			bind_cols(., seed_number = rep(seed, nrow(.)))
+		
+	}
 	
 }
 
