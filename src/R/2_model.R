@@ -17,8 +17,8 @@ library(docopt)
 
 opt <- docopt(doc)
 
-#' This function extracts the latent offensive and defensive skill of all players
-#' in the data used to fit the model.
+#' This function extracts approximate factor scores (i.e. the latent variables)
+#' from a fitted lavaan model.
 #'
 #' @param model A lavaan fitted model.
 #' @param level If 2, return grouped estimates of latent variables 
