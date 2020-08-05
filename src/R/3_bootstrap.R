@@ -19,7 +19,8 @@ library(docopt)
 opt <- docopt(doc)
 
 #' This function extracts approximate factor scores (i.e. the latent variables)
-#' from a fitted lavaan model.
+#' from a fitted lavaan model. This is a helper function not meant to be 
+#' used by itself.
 #'
 #' @param model A lavaan fitted model.
 #' @param level If 2, return grouped estimates of latent variables 

@@ -18,7 +18,8 @@ library(docopt)
 opt <- docopt(doc)
 
 #' This function extracts approximate factor scores (i.e. the latent variables)
-#' from a fitted lavaan model.
+#' from a fitted lavaan model. This is a helper function not meant to be used
+#' by itself.
 #'
 #' @param model A lavaan fitted model.
 #' @param level If 2, return grouped estimates of latent variables 
@@ -35,21 +36,24 @@ get_latent_vars <- function(model, level = 2) {
 		stop("Level = 2 but the fitted model is not multilevel. Either set level = 1 or
 				 fit a multilevel model.")
 	} 
-	
 	if (level == 2) {
-		tibble(
+	
+		# In this case, fitted model holds the cluster ids.
+		factor_scores <- as_tibble(lavPredict(model, level = 2))
+		bind_cols(
 			player = model@Data@Lp[[1]]$cluster.id[[2]],
-			off_score = lavPredict(model, level = 2)[, 1],
-			def_score = lavPredict(model, level = 2)[, 2]
+			factor_scores
 			)
+
 	} else {
-		tibble(
+		
+		# player is a dummy column that just gets renamed after using the read in data.
+		factor_scores <- as_tibble(lavPredict(model, level = 1))
+		bind_cols(
 			player = rep(NA, model@Data@nobs[[1]]),
-			off_score = lavPredict(model, level = 1)[, 1],
-			def_score = lavPredict(model, level = 1)[, 2]
+			factor_scores
 		)
 	}
-		
 }
 
 #' Fit a lavaan model with a given model code on data from a specific year.
@@ -71,10 +75,13 @@ fit_model_year <- function(data_file, model_code, position_player, multilevel = 
 	data <- read_rds(paste0(data_file)) %>%
 		filter(position == position_player)
 	
+	# Fit the sem model and extract latent variables
 	if (multilevel == TRUE) {
 		model <- sem(model = model_code, data = data, cluster = "player")
 		scores <- get_latent_vars(model, level = 2) 
 	} else {
+	# In this case, extract latent variables and rename the player column here since
+	# lavaan objects do not store the data for level 1 models.
 		model <- sem(model = model_code, data = data)
 		scores <- get_latent_vars(model, level = 1) %>%
 			mutate(player = data$player)
