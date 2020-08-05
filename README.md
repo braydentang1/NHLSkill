@@ -1,2 +1,4 @@
 # NHLSkill
-Structural Equation Modelling for Assessing Skill
+Structural Equation Modelling for Assessing Offensive and Defensive Contributions
+
+Work in progress.
