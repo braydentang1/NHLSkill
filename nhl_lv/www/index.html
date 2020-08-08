@@ -10,9 +10,10 @@
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
 		<meta name="description" content="" />
+		{{ bootstrapLib() }}
+		{{ headContent() }}
 		<meta name="keywords" content="" />
 		<link rel="stylesheet" href="assets/css/main.css" />
-		{{ headContent() }}
 	</head>
 	<body class="is-preload">
 
@@ -33,7 +34,7 @@
 					<li><a href="#leaderboard">League Wide Ratings</a></li>
 				</ul>
 			</nav>
-
+			
 		<!-- Banner -->
 			<section id="banner">
 				<div class="inner">
@@ -54,7 +55,7 @@
 						<section>
 							<div class="content">
 								<header>
-									<a href="#" class="icon fa-vcard-o"><span class="label">Icon</span></a>
+									<a href="#indiv" class="icon fa-vcard-o"><span class="label">Icon</span></a>
 									<h3>Individual Profiles</h3>
 								</header>
 								<p>Estimate the offensive and defensive contributions of a player.</p>
