@@ -12,12 +12,13 @@
 		<meta name="description" content="" />
 		<meta name="keywords" content="" />
 		<link rel="stylesheet" href="assets/css/main.css" />
+		{{ headContent() }}
 	</head>
 	<body class="is-preload">
 
 		<!-- Header -->
 			<header id="header">
-				<a class="logo" href="index.html">NHL Player Profiler</a>
+				<a class="logo" href="#index">NHL Player Profiler</a>
 				<nav>
 					<a href="#menu">Menu</a>
 				</nav>
@@ -27,9 +28,9 @@
 			<nav id="menu">
 				<ul class="links">
 					<li><a href="index.html">Home</a></li>
-					<li><a href="elements.html">Individual Players</a></li>
-					<li><a href="generic.html">Player Comparison</a></li>
-					<li><a href="leaderboard.html">League Wide Ratings</a></li>
+					<li><a href="#indiv">Individual Players</a></li>
+					<li><a href="#comparison">Player Comparison</a></li>
+					<li><a href="#leaderboard">League Wide Ratings</a></li>
 				</ul>
 			</nav>
 
@@ -80,6 +81,18 @@
 					</div>
 				</div>
 			</section>
+			
+	<!-- Individual Player Profiler -->
+	<section id="indiv">
+				<div class="inner">
+					<div class="individual_profiles">
+						<header>
+							<h2>Individual Players</h2>
+						</header>
+					</div>
+											{{ dist_plot }}
+				</div>
+	</section>
 
 		<!-- CTA -->
 			<section id="cta" class="wrapper">

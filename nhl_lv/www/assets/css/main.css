@@ -1287,7 +1287,7 @@ ul.actions {
   .row > .col-4-large {
     width: 33.3333333333%; }
   .row > .off-4-large {
-    margin-left: 33.3333333333%; }
+    margin-left: 33.3333b333333%; }
   .row > .col-5-large {
     width: 41.6666666667%; }
   .row > .off-5-large {
@@ -2643,7 +2643,7 @@ body {
     #heading .testimonials .content .credit strong {
       color: #ce1b28; }
   #heading:before {
-    background: linear-gradient(135deg, #ce1b28 0%, #111111 74%);
+    background: linear-gradient(135deg, #39cacc 0%, #111111 74%);
     content: ' ';
     display: block;
     height: 100%;
@@ -2821,3 +2821,5 @@ body.is-menu-visible #menu {
   transform: translateX(0);
   box-shadow: 0 0 1.5rem 0 rgba(0, 0, 0, 0.2);
   visibility: visible; }
+ 
+
