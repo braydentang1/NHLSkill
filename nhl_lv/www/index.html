@@ -10,8 +10,8 @@
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
 		<meta name="description" content="" />
-		{{ bootstrapLib() }}
 		{{ headContent() }}
+		{{ bootstrapLib() }}
 		<meta name="keywords" content="" />
 		<link rel="stylesheet" href="assets/css/main.css" />
 	</head>
@@ -49,7 +49,6 @@
 				<div class="inner">
 					<header class="special">
 						<h2>Statistical Modeling for Hockey Fans</h2>
-						<p>View individual player profiles, player comparisons, and more!</p>
 					</header>
 					<div class="highlights">
 						<section>
@@ -75,7 +74,7 @@
 								<header>
 									<a href="#" class="icon fa-list-ul"><span class="label">Icon</span></a>
 									<h3>League Wide Ratings</h3>
-								</header>`
+								</header>
 								<p>Obtain the top offensive and defensive players over time.</p>
 							</div>
 						</section>
@@ -87,9 +86,9 @@
 	<section id="indiv">
 				<div class="inner">
 					<div class="individual_profiles">
-						<header>
-							<h2>Individual Players</h2>
-						</header>
+				<header class="special">
+						<h2>Viewer</h2>
+					</header>
 							{{ dist_plot }}
 					</div>
 				</div>
