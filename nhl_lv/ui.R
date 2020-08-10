@@ -6,9 +6,9 @@ library(shinyBS)
 # Define UI for application that draws a histogram
 ui <- htmlTemplate(
     "www/index.html",
-    dist_plot = tabsetPanel(
+    dist_plot = tabsetPanel(id = "tabset",
       tabPanel(title = "Test"),
-      tabPanel(title = "Individual Players",
+      tabPanel(title = "Individual Players", value = "indiv",
         sidebarLayout(
     	    sidebarPanel(
     		    selectInput("player",
