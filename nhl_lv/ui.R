@@ -26,7 +26,7 @@ ui <- htmlTemplate(
     	         selectInput("year",
     	                 "Year:", choices = c("2014", "2015", "2016", "2017", "2018", "2019", "2020")))),
     	mainPanel(
-    		plotOutput("distPlot", width = '500px')
+    		  textOutput(outputId = "player_off_score")
     	  )
       )
     )
