@@ -431,7 +431,7 @@ textarea {
   padding: 0.75rem 1rem; }
 
 input[type="checkbox"],
-input[type="radio"] {
+.radio input[type="radio"] {
   -moz-appearance: none;
   -webkit-appearance: none;
   -ms-appearance: none;
@@ -443,17 +443,18 @@ input[type="radio"] {
   width: 1rem;
   z-index: -1; }
   input[type="checkbox"] + label,
-  input[type="radio"] + label {
+  .radio input[type="radio"] + label {
     text-decoration: none;
     cursor: pointer;
     display: inline-block;
     font-size: 1rem;
     font-weight: 400;
+    margin-bottom: 4px;
     padding-left: 2.825rem;
     padding-right: 0.875rem;
     position: relative; }
     input[type="checkbox"] + label:before,
-    input[type="radio"] + label:before {
+    .radio input[type="radio"] + label:before {
       -moz-osx-font-smoothing: grayscale;
       -webkit-font-smoothing: antialiased;
       font-family: FontAwesome;
@@ -461,7 +462,7 @@ input[type="radio"] {
       font-weight: normal;
       text-transform: none !important; }
     input[type="checkbox"] + label:before,
-    input[type="radio"] + label:before {
+    .radio input[type="radio"] + label:before {
       border-radius: 4px;
       border: solid 1px;
       content: '';
@@ -474,13 +475,13 @@ input[type="radio"] {
       top: -0.1625rem;
       width: 1.95rem; }
   input[type="checkbox"]:checked + label:before,
-  input[type="radio"]:checked + label:before {
+  .radio input[type="radio"]:checked + label:before {
     content: '\f00c'; }
 
 input[type="checkbox"] + label:before {
   border-radius: 4px; }
 
-input[type="radio"] + label:before {
+.radio input[type="radio"] + label:before {
   border-radius: 100%; }
 
 ::-webkit-input-placeholder {
@@ -526,21 +527,21 @@ select {
     background-color: #ffffff; }
 
 input[type="checkbox"] + label,
-input[type="radio"] + label {
+.radio input[type="radio"] + label {
   color: #444444; }
   input[type="checkbox"] + label:before,
-  input[type="radio"] + label:before {
+  .radio input[type="radio"] + label:before {
     background: rgba(0, 0, 0, 0.075);
     border-color: rgba(0, 0, 0, 0.25); }
 input[type="checkbox"]:checked + label:before,
-input[type="radio"]:checked + label:before {
-  background-color: #ce1b28;
-  border-color: #ce1b28;
+.radio input[type="radio"]:checked + label:before {
+  background-color: #39cacc;
+  border-color: #0fbfff;
   color: #ffffff; }
 input[type="checkbox"]:focus + label:before,
-input[type="radio"]:focus + label:before {
-  border-color: #ce1b28;
-  box-shadow: 0 0 0 1px #ce1b28; }
+.radio input[type="radio"]:focus + label:before {
+  border-color: #0fbfff;
+  box-shadow: 0 0 0 1px #0fbfff; }
 
 ::-webkit-input-placeholder {
   color: #bbbbbb !important; }
@@ -2164,7 +2165,7 @@ ul.icons {
   #cta input[type="radio"]:checked + label:before {
     background-color: #ffffff;
     border-color: #ffffff;
-    color: #ce1b28; }
+    color: #249b9c; }
   #cta input[type="checkbox"]:focus + label:before,
   #cta input[type="radio"]:focus + label:before {
     border-color: #ffffff;
@@ -2304,12 +2305,12 @@ ul.icons {
       border-color: rgba(255, 255, 255, 0.25); }
   #footer input[type="checkbox"]:checked + label:before,
   #footer input[type="radio"]:checked + label:before {
-    background-color: #ce1b28;
-    border-color: #ce1b28;
+    background-color: #249b9c;
+    border-color: #249b9c;
     color: #ffffff; }
   #footer input[type="checkbox"]:focus + label:before,
   #footer input[type="radio"]:focus + label:before {
-    border-color: #ce1b28;
+    border-color: #249b9c;
     box-shadow: 0 0 0 1px #ce1b28; }
   #footer ::-webkit-input-placeholder {
     color: rgba(255, 255, 255, 0.4) !important; }
@@ -2606,8 +2607,8 @@ body {
       border-color: rgba(255, 255, 255, 0.25); }
   #heading input[type="checkbox"]:checked + label:before,
   #heading input[type="radio"]:checked + label:before {
-    background-color: #ce1b28;
-    border-color: #ce1b28;
+    background-color: #249b9c;
+    border-color: #249b9c;
     color: #ffffff; }
   #heading input[type="checkbox"]:focus + label:before,
   #heading input[type="radio"]:focus + label:before {
@@ -2822,5 +2823,24 @@ body.is-menu-visible #menu {
   transform: translateX(0);
   box-shadow: 0 0 1.5rem 0 rgba(0, 0, 0, 0.2);
   visibility: visible; }
+  
+.irs-single {
+	background: #39cacc;
+	font-size: 12px;
+	color: #000000;
+}
+
+.irs-min, .irs-max {
+	color: #000000;
+	font-size: 11px;
+}
+
+.irs-bar, .irs-bar-edge {
+	background: #39cacc7d;
+}
+
+.pretty input:checked~.state.p-primary label:after, .pretty.p-toggle .state.p-primary label:after {
+    background-color: #39cacc!important;
+}
  
 
