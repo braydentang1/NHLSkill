@@ -2067,6 +2067,7 @@ ul.icons {
   background-image: linear-gradient(rgb(9, 160, 160), rgba(6, 6, 6, 0.85)), url(../../images/cup.jpg);
   background-position: bottom;
   background-repeat: no-repeat;
+  height: 58%;
   background-size: cover;
   position: relative;
   text-align: center;

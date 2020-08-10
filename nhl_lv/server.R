@@ -1,6 +1,7 @@
 library(shiny)
 library(tidyverse)
 library(plotly)
+library(shinydashboard)
 
 # Define server logic required to draw a histogram
 server <- function(input, output, session) {
@@ -39,12 +40,12 @@ server <- function(input, output, session) {
         
     })
 
-    output$player_off_score <- renderText({
-        lookup()$off_score
+    output$player_off_score <- renderInfoBox({
+        infoBox("Offensive \n Score", round(lookup()$off_score, 2), icon = icon("list"), color = "purple", fill = TRUE)
     })
         
     output$player_def_score <- renderText({
-        lookup()$def_score
+        infoBox("Defensive \n Score", round(lookup()$def_score, 2), icon = icon("list"), color = "blue", fill = TRUE)
     })
         
 }
