@@ -22,14 +22,14 @@ server <- function(input, output, session) {
         if (position == "F") {
             
             scores <- all_forwards_gte[[year]]$factor_scores
-            off_score <- scores$off_score[which(scores$player == input$player)]
-            def_score <- scores$def_score[which(scores$player == input$player)]
+            off_score <- scores$off_contribution[which(scores$player == input$player)]
+            def_score <- scores$def_contribution[which(scores$player == input$player)]
             
         } else {
             
             scores <- all_defenceman_gte[[year]]$factor_scores
-            off_score <- scores$off_score[which(scores$player == input$player)]
-            def_score <- scores$def_score[which(scores$player == input$player)]
+            off_score <- scores$off_contribution[which(scores$player == input$player)]
+            def_score <- scores$def_contribution[which(scores$player == input$player)]
             
         }
         

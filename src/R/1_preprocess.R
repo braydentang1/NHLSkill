@@ -101,8 +101,6 @@ read_data_hr <- function(data_path, directory) {
 	
 }
 
-
-
 main <- function(year_seasons_gte, year_seasons_indiv, raw_data_path,
 								 processed_out_gte, processed_out_indiv) {
 
@@ -241,21 +239,19 @@ main <- function(year_seasons_gte, year_seasons_indiv, raw_data_path,
 			TRUE ~ player
 		))
 		
-	# Fuzzy join again, but because HockeyReference creates two separate rows for
-	# a player who is traded mid season we have to group by and summarize.
+	# Fuzzy join again like before. I adressed the multiple rows per single player in a year
+	# problem by just taking the row with the totals in 0_get-data-hr.py.
 	all_na <- combined_hr_data %>%
 		filter(rowSums(is.na(.)) > 0) %>%
-		select(-player) %>%
 		bind_cols(., last_names_na) %>%
 		select_if(~sum(!is.na(.)) > 0) %>%
+		rename("player" = player...37) %>%
 		fuzzy_left_join(
 			all_hr,
 			by = c("player", "year"),
 			match_fun = list(function(x, y) str_detect(y, x), function(x, y) x == y)) %>%
-		select(-player.x, -year.x) %>%
-		rename(player = player.y, year = year.y) %>%
-		group_by(player, year, .drop = FALSE) %>%
-		summarize(ops = sum(ops), dps = sum(dps))
+		select(-player.x, -player.y, -year.y) %>%
+		rename(year = year.x) 
 	
 	# Bind back missing rows with actual matched data
 	all_data <- combined_hr_data %>% 
