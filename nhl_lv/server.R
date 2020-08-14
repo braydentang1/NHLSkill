@@ -19,6 +19,11 @@ server <- function(input, output, session) {
         position <- all_players$position[which(input$player == all_players$player)]
         year <- as.character(input$year)
         
+        # Brent Burns changed to D and has to entries. Use the D entry.
+        if (input$player == "brent burns") {
+            position <- "D"
+        }
+        
         if (position == "F") {
             
             scores <- all_forwards_gte[[year]]$factor_scores
@@ -34,6 +39,7 @@ server <- function(input, output, session) {
         }
         
         list(
+            position = position,
             off_score = off_score,
             def_score = def_score
         )
@@ -41,11 +47,40 @@ server <- function(input, output, session) {
     })
 
     output$player_off_score <- renderInfoBox({
-        infoBox("Offensive \n Score", round(lookup()$off_score, 2), icon = icon("list"), color = "purple", fill = TRUE)
+        infoBox("Offensive \n Score", round(lookup()$off_score, 2), icon = icon("chevron-up", lib = "glyphicon"), color = "blue", fill = TRUE)
     })
         
-    output$player_def_score <- renderText({
-        infoBox("Defensive \n Score", round(lookup()$def_score, 2), icon = icon("list"), color = "blue", fill = TRUE)
+    output$player_def_score <- renderInfoBox({
+        infoBox("Defensive \n Score", round(lookup()$def_score, 2), icon = icon("tower", lib = "glyphicon"), color = "blue", fill = TRUE)
     })
+    
+    output$player <- renderText({
+        input$player
+    })
+    
+    position <- reactive({
+        
+        if (lookup()$position == "F") {
+            position <- "Forward"
+        } else {
+            position <-  "Defenceman"
+        }
+        position    
+    })
+    
+    output$profile <- renderUI({
+        
+        last_name <- str_split_fixed(input$player, pattern = " ", n = 2)[2]
+        
+        widgetUserBox(
+            title = input$player,
+            subtitle = position(),
+            src = paste0("images/", "players/", last_name, ".jpg"), 
+            boxToolSize = "lg",
+            width = 12,
+            collapsible = FALSE
+        )
+        
+        }, )
         
 }

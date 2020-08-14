@@ -3,6 +3,7 @@ library(tools)
 library(shinyWidgets)
 library(shinyBS)
 library(shinydashboard)
+library(shinydashboardPlus)
 
 # Define UI for application that draws a histogram
 ui <- htmlTemplate(
@@ -27,7 +28,19 @@ ui <- htmlTemplate(
     	         selectInput("year",
     	                 "Year:", choices = c("2014", "2015", "2016", "2017", "2018", "2019", "2020")))),
     	mainPanel(
-    		  infoBoxOutput("player_off_score", width = 5)
+    	  fluidRow(
+    	    column(
+    	      width = 12,
+    	      uiOutput("profile")
+    	      )
+    	    ),
+    	  fluidRow(
+    	    column(
+    	      width = 12,
+    		    infoBoxOutput("player_off_score", width = 5),
+    		    infoBoxOutput("player_def_score", width = 5)
+    	      )
+    	    )
     	  )
       )
     )
