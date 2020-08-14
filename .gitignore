@@ -42,3 +42,4 @@ data/*
 
 chromedriver
 results/*
+nhl_lv/www/images/players/*
