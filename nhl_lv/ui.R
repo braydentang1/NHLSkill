@@ -20,12 +20,12 @@ ui <- htmlTemplate(
     								    selected = "sidney crosby"),
     		    prettyRadioButtons("gte", "Data Type:", selected = "Grouped", animation = "smooth", fill = TRUE, choices = c("Individual", "Grouped")),
     		    conditionalPanel("input.gte == 'Grouped'",
-    		      sliderInput("year",
+    		      sliderInput("year_since",
     		                "Using Data Since:", sep = "",
     		                min = 2014, step = 1, round = TRUE,
     		                max = 2019, value = 2014)),
     	      conditionalPanel("input.gte == 'Individual'",
-    	         selectInput("year",
+    	         selectInput("year_indiv",
     	                 "Year:", choices = c("2014", "2015", "2016", "2017", "2018", "2019", "2020")))),
     	mainPanel(
     	  fluidRow(
@@ -37,10 +37,16 @@ ui <- htmlTemplate(
     	  fluidRow(
     	    column(
     	      width = 12,
-    		    infoBoxOutput("player_off_score", width = 5),
-    		    infoBoxOutput("player_def_score", width = 5)
+    		    infoBoxOutput("player_off_score", width = 6),
+    		    infoBoxOutput("player_def_score", width = 6)
     	      )
+    	    ),
+    	  fluidRow(
+    	    column(
+    	      width = 12,
+    	      plotlyOutput("over_time_graph")
     	    )
+    	  )
     	  )
       )
     )

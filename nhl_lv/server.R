@@ -17,7 +17,7 @@ server <- function(input, output, session) {
     lookup <- reactive({
     
         position <- all_players$position[which(input$player == all_players$player)]
-        year <- as.character(input$year)
+        year <- as.character(input$year_since)
         
         # Brent Burns changed to D and has to entries. Use the D entry.
         if (input$player == "brent burns") {
@@ -81,6 +81,30 @@ server <- function(input, output, session) {
             collapsible = FALSE
         )
         
-        }, )
+        })
+    
+    output$over_time <- renderPlotly({
+        
+        if (lookup()$position == "F") {
+            
+            all_scores <- map(all_forwards_gte, .f = function(x) {
+                
+                list(
+                    off_scores = x$factor_scores$off_contribution[which(x$factor_scores$player == input$player)],
+                    def_scores = x$factor_scores$def_contribution[which(x$factor_scores$player == input$player)] 
+                )
+            }) %>%
+                bind_rows() %>%
+                bind_cols(
+                    year = seq(as.numeric(input$year), as.numeric(input$year) + nrow(.) - 1, 1),
+                    .)
+            
+            
+        
+        }
+        
+        all_scores <- map()
+        
+    })
         
 }
