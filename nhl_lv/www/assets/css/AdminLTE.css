@@ -3103,12 +3103,13 @@ table.text-center th {
 .widget-user .widget-user-username {
   margin-top: 0;
   margin-bottom: 5px;
-  font-size: 25px;
+  font-size: 30px;
   font-weight: 300;
-  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.3);
 }
 .widget-user .widget-user-desc {
   margin-top: 0;
+  font-size: 15px;
 }
 .widget-user .widget-user-image {
   position: absolute;
@@ -4500,7 +4501,7 @@ table.text-center th {
   background-color: #00c0ef !important;
 }
 .bg-blue {
-  background-color: #0073b7 !important;
+  background-color: #39cacc !important;
 }
 .bg-light-blue,
 .label-primary,

@@ -18,7 +18,7 @@ ui <- htmlTemplate(
     								    choices = sort(unique(c(all_forwards_gte[["2014"]]$data$player,
     								                all_defenceman_gte[["2014"]]$data$player))),
     								    selected = "sidney crosby"),
-    		    prettyRadioButtons("gte", "Data Type:", selected = "Grouped", animation = "smooth", fill = TRUE, choices = c("Individual", "Grouped")),
+    		    prettyRadioButtons("gte", "Data Type:", selected = "Grouped", animation = "smooth", fill = FALSE, choices = c("Individual", "Grouped")),
     		    conditionalPanel("input.gte == 'Grouped'",
     		      sliderInput("year_since",
     		                "Using Data Since:", sep = "",
@@ -43,10 +43,10 @@ ui <- htmlTemplate(
     	    ),
     	  fluidRow(
     	    column(
-    	      width = 12,
-    	      plotlyOutput("over_time_graph")
+    	      width = 12, 
+    	      plotOutput("over_time", height = "200px")
+    	      )
     	    )
-    	  )
     	  )
       )
     )

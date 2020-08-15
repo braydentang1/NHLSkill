@@ -476,6 +476,7 @@ input[type="checkbox"],
       width: 1.95rem; }
   input[type="checkbox"]:checked + label:before,
   .radio input[type="radio"]:checked + label:before {
+  	background: #fff;
     content: '\f00c'; }
 
 input[type="checkbox"] + label:before {
@@ -531,17 +532,17 @@ input[type="checkbox"] + label,
   color: #444444; }
   input[type="checkbox"] + label:before,
   .radio input[type="radio"] + label:before {
-    background: rgba(0, 0, 0, 0.075);
-    border-color: rgba(0, 0, 0, 0.25); }
+    background: #ffffff;
+    border-color: #000000; }
 input[type="checkbox"]:checked + label:before,
 .radio input[type="radio"]:checked + label:before {
-  background-color: #39cacc;
+  background-color: #fff;
   border-color: #0fbfff;
   color: #ffffff; }
 input[type="checkbox"]:focus + label:before,
 .radio input[type="radio"]:focus + label:before {
-  border-color: #0fbfff;
-  box-shadow: 0 0 0 1px #0fbfff; }
+  border-color: #fff;
+  box-shadow: 0 0 0 1px #fff; }
 
 ::-webkit-input-placeholder {
   color: #bbbbbb !important; }
@@ -2040,7 +2041,7 @@ ul.icons {
       #banner h1 {
         font-size: 1.75rem;
         margin-bottom: 0.5rem;
-        padding-bottom: 0; }
+         padding-bottom: 0; }
       #banner p {
         font-size: 1.25rem; }
       #banner br {
@@ -2826,22 +2827,46 @@ body.is-menu-visible #menu {
   visibility: visible; }
   
 .irs-single {
-	background: #39cacc;
+	background: #fff;
 	font-size: 12px;
 	color: #000000;
 }
 
 .irs-min, .irs-max {
-	color: #000000;
+	color: #00000;
 	font-size: 11px;
+	background: #ffffffe6;
 }
 
 .irs-bar, .irs-bar-edge {
-	background: #39cacc7d;
+	background: rgba(0, 0, 0, 0.2);
 }
 
-.pretty input:checked~.state.p-primary label:after, .pretty.p-toggle .state.p-primary label:after {
-    background-color: #39cacc!important;
+.irs-grid-text {
+	color: #000000;
+	font-size: 12px;
 }
- 
 
+.pretty input:checked~.state.p-primary label:after, .pretty.p-toggle .state.p-primary label:after{
+    background-color: #fff!important;
+}
+
+.pretty .state label:before {
+		border-color: #fff;
+}
+
+.widget-user-header, .widget-user-username, .widget-user-desc {
+	background-color: #39cacc;
+	color: #55555;
+}
+.well {
+	background-color: #39cacc;
+}
+
+.info-box-text, .info-box-number {
+	color: #555555;	
+}
+
+.control-label {
+	color: #555555;
+}
