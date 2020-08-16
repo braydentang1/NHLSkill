@@ -150,19 +150,20 @@ server <- function(input, output, session) {
           Year = year,
           `Offensive Score` = off_scores,
           `Defensive Score` = def_scores) %>%
-        filter(Year >= as.numeric(year_filter))
+        filter(Year >= as.numeric(year_filter)) %>%
+        gather(key = `Score Type`, value = Score, -Year)
 
-      ggplot(data = all_scores, aes(x = Year, y = `Offensive Score`)) +
+      ggplot(data = all_scores, aes(x = as.factor(Year), y = Score, fill = `Score Type`)) +
                 geom_hline(yintercept = 0, colour = "red", size = 1) +
-                geom_line(stat = "identity", color = "white", size = 3) +
-                geom_line(aes(x = Year, y = `Defensive Score`), stat = "identity", color = "#555555", alpha = 0.8, size = 3) + 
+                geom_bar(stat = "identity", position = "dodge2") +
                 labs(
                     title = "Scores Over Time",
-                    subtitle = "Offensive Score in White, Defensive Score in Black, Red is Average",
-                    x = "Using Data From Year",
+                    subtitle = "Red is Average",
+                    x = ifelse(input$gte == "Grouped", "Using Data Since", "Year"),
                     y = "Score"
                     ) +
-                theme_minimal() +
+        scale_fill_manual(values = c("#555555", "#ffffff")) +
+        theme_minimal() +
         theme(
           plot.background = element_rect(colour = "#e3e3e3", fill = "#39cacc"),
           plot.title = element_text(colour = "#555555", size = 20),
