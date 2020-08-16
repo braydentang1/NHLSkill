@@ -1,7 +1,7 @@
 '''
 This script automates the retrieval of player images from NHL.com.
 
-Usage: get-player-images.py --chromedriver_path=<chromedriver_path> --path_out=<path_out>
+Usage: get-player-images.py --chromedriver_path=<chromedriver_path> --path_out=<path_out> --player_list=<player_list>
 
 Options:
 --chromedriver_path=<chromedriver_path>  A file path that describes where the web driver executable is.
@@ -24,7 +24,7 @@ from selenium.webdriver.support.select import Select
 
 opt = docopt(__doc__)
 
-def main(chromedriver_path, path_out):
+def main(chromedriver_path, path_out, player_list):
 
 	if not os.path.exists(path_out):
 		os.makedirs(path_out)
@@ -42,21 +42,19 @@ def main(chromedriver_path, path_out):
 	options.add_argument("--proxy-server='direct://'")
 	options.add_argument("--proxy-bypass-list=*")
 
-	driver = webdriver.Chrome(chromedriver_path, options=options)
-	driver.get(
-		'https://www.nhl.com/player'
-	)
-	
-	player_list = pd.read_csv("src/python/player_list.csv")['player'].tolist()
+	driver = webdriver.Chrome(chromedriver_path, options=options)	
+	player_list = pd.read_csv(player_list)['player'].tolist()
 	
 	for player in player_list:
 		
+		driver.get('https://www.nhl.com/player')
 		name_split = player.split(" ")
-	
+		time.sleep(10)
 		driver.find_element_by_css_selector('#searchTerm').send_keys(player)
-		Sys.sleep(7)
+		time.sleep(10)
 		driver.find_element_by_css_selector('.typeahead-search-hidden-els .search-result-highlight').click()
-		Sys.sleep(7)
+		driver.get(url)
+		time.sleep(10)
 		img = driver.find_element_by_css_selector('.player-jumbotron--responsive .player-jumbotron-vitals__headshot-image')
 		src = img.get_attribute('src')
 		urllib.request.urlretrieve(src, path_out + "/" + name_split[0] + "_" + name_split[1] + ".jpg")
@@ -64,5 +62,6 @@ def main(chromedriver_path, path_out):
 	
 main(
 	opt['--chromedriver_path'],
-	opt['--path_out']
+	opt['--path_out'],
+    opt['--player_list']
 )
