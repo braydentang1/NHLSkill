@@ -2,6 +2,7 @@ library(shiny)
 library(tidyverse)
 library(shinydashboard)
 library(ggthemes)
+library(patchwork)
 
 # Define server logic required to draw a histogram
 server <- function(input, output, session) {
@@ -112,7 +113,8 @@ server <- function(input, output, session) {
             year_filter <- input$year_since
           } else {
             type_of_data <- all_forwards_indiv
-            year_filter <- input$year_indiv
+            # If individual, just don't filter - no point.
+            year_filter <- 2014
           }
           
         } else {
@@ -122,7 +124,8 @@ server <- function(input, output, session) {
             year_filter <- input$year_since
           } else {
             type_of_data <- all_defenceman_indiv
-            year_filter <- input$year_indiv
+            # If individual, just don't filter - no point.
+            year_filter <- 2014
           }
         }
       
@@ -167,6 +170,70 @@ server <- function(input, output, session) {
           plot.subtitle = element_text(colour = "#555555")
         )
 
+    })
+    
+    output$distribution <- renderPlot({
+      
+      if (input$player == "brent burns") {
+        position <- "D"
+      } else {
+        position <- lookup()$position
+      }
+      
+      if (position == "F") {
+        graphing_dist <- all_forwards_gte_u[[as.character(input$year_since)]] %>%
+          filter(player == input$player) %>%
+          mutate(
+            off_contribution = as.numeric(off_contribution),
+            def_contribution = as.numeric(def_contribution))
+        
+      } else {
+        graphing_dist <- all_defenceman_gte_u[[as.character(input$year_since)]] %>%
+          filter(player == input$player) %>%
+          mutate(
+            off_contribution = as.numeric(off_contribution),
+            def_contribution = as.numeric(def_contribution)) 
+      }
+    
+      off_plot <- ggplot(graphing_dist, aes(x = off_contribution)) +
+        geom_density(fill = "#ffffff", bw = 0.10) +
+        geom_vline(xintercept = lookup()$off_score) + 
+        theme_minimal() + 
+        labs(
+          x = "Offensive Score",
+          y = "Density"
+        ) + 
+        theme(
+          plot.background = element_rect(colour = "#e3e3e3", fill = "#39cacc"),
+          plot.title = element_text(colour = "#555555", size = 20),
+          axis.title = element_text(colour = "#555555", face = "bold"),
+          plot.subtitle = element_text(colour = "#555555")
+        )
+      
+      def_plot <- ggplot(graphing_dist, aes(x = def_contribution)) +
+        geom_density(fill = "#555555", bw = 0.1) +
+        geom_vline(xintercept = lookup()$def_score) +
+        theme_minimal() + 
+        labs(
+          x = "Defensive Score",
+          y = "Density"
+        ) +
+        theme(
+        plot.background = element_rect(colour = "#e3e3e3", fill = "#39cacc"),
+        plot.title = element_text(colour = "#555555", size = 20),
+        axis.title = element_text(colour = "#555555", face = "bold"),
+        plot.subtitle = element_text(colour = "#555555")
+        )
+      
+      off_plot + def_plot + plot_annotation(
+        title = "Estimated Score Distributions"
+      ) & theme_minimal() & theme(
+        plot.background = element_rect(colour = "#e3e3e3", fill = "#39cacc"),
+        plot.title = element_text(colour = "#555555", size = 20, hjust = 0.055),
+        axis.title = element_text(colour = "#555555", face = "bold"),
+        plot.subtitle = element_text(colour = "#555555")
+      )
+      
     })
     
         

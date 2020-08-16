@@ -46,7 +46,15 @@ ui <- htmlTemplate(
     	      width = 12, 
     	      plotOutput("over_time", height = "200px")
     	      )
+    	    ),
+    	  br(),
+    	  conditionalPanel("input.gte == 'Grouped'",
+    	  fluidRow(
+    	    column(
+    	      width = 12,
+    	      plotOutput("distribution", height = "200px")
     	    )
+    	  ))
     	  )
       )
     )
