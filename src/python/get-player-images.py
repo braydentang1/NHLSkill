@@ -6,7 +6,7 @@ Usage: get-player-images.py --chromedriver_path=<chromedriver_path> --path_out=<
 Options:
 --chromedriver_path=<chromedriver_path>  A file path that describes where the web driver executable is.
 --path_out=<path_out>  A file path that describes where to output the images.
---player_list=<player_list> A .csv file of the first and last names of players.
+--player_list=<player_list> A .csv file of the full names of players. Assumes there exists a column named players. 
 '''
 
 import numpy as np
@@ -56,6 +56,7 @@ def main(chromedriver_path, path_out):
 		driver.find_element_by_css_selector('#searchTerm').send_keys(player)
 		Sys.sleep(7)
 		driver.find_element_by_css_selector('.typeahead-search-hidden-els .search-result-highlight').click()
+		Sys.sleep(7)
 		img = driver.find_element_by_css_selector('.player-jumbotron--responsive .player-jumbotron-vitals__headshot-image')
 		src = img.get_attribute('src')
 		urllib.request.urlretrieve(src, path_out + "/" + name_split[0] + "_" + name_split[1] + ".jpg")

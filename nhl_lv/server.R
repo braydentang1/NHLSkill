@@ -83,12 +83,13 @@ server <- function(input, output, session) {
     
     output$profile <- renderUI({
         
-        last_name <- str_split_fixed(input$player, pattern = " ", n = 2)[2]
+        full_name <- str_split_fixed(input$player, pattern = " ", n = 2)
+        name_id <- paste(full_name, collapse = "_")
         
         widgetUserBox(
             title = input$player,
             subtitle = position(),
-            src = paste0("images/", "players/", last_name, ".jpg"), 
+            src = paste0("images/", "players/", name_id, ".jpg"), 
             boxToolSize = "lg",
             width = 12,
             collapsible = FALSE
