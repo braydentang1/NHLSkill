@@ -17,7 +17,6 @@ server <- function(input, output, session) {
     lookup <- reactive({
     
         position <- all_players$position[which(input$player == all_players$player)]
-        year <- as.character(input$year_since)
         
         # Brent Burns changed to defenceman and therefore,
         # has two entries. Use the D entry.
@@ -27,17 +26,27 @@ server <- function(input, output, session) {
         
         if (position == "F") {
             
-            scores <- all_forwards_gte[[year]]$factor_scores
-            off_score <- scores$off_contribution[which(scores$player == input$player)]
-            def_score <- scores$def_contribution[which(scores$player == input$player)]
-            
+            if (input$gte == "Grouped") {
+              year <- as.character(input$year_since)
+              scores <- all_forwards_gte[[year]]$factor_scores
+            } else {
+              year <- as.character(input$year_indiv)
+              scores <- all_forwards_indiv[[year]]$factor_scores
+            }
+          
         } else {
-            
+          
+          if (input$gte == "Grouped") {
+            year <- as.character(input$year_since)
             scores <- all_defenceman_gte[[year]]$factor_scores
-            off_score <- scores$off_contribution[which(scores$player == input$player)]
-            def_score <- scores$def_contribution[which(scores$player == input$player)]
-            
+          } else {
+            year <- as.character(input$year_indiv)
+            scores <- all_defenceman_indiv[[year]]$factor_scores
+          }
         }
+
+        off_score <- scores$off_contribution[which(scores$player == input$player)]
+        def_score <- scores$def_contribution[which(scores$player == input$player)]
         
         list(
             position = position,
@@ -95,58 +104,67 @@ server <- function(input, output, session) {
         } else {
             position <- lookup()$position
         }
-
+      
         if (position == "F") {
-
-            all_scores <- map(all_forwards_gte, .f = function(x) {
-                list(
-                    off_scores = x$factor_scores$off_contribution[which(x$factor_scores$player == input$player)],
-                    def_scores = x$factor_scores$def_contribution[which(x$factor_scores$player == input$player)]
-                )
-            }) %>%
-                bind_rows() %>%
-                bind_cols(
-                    year = seq(2014, as.numeric(last_year_gte), 1),
-                    .) %>%
-                rename(
-                    Year = year,
-                    `Offensive Score` = off_scores,
-                    `Defensive Score` = def_scores) %>%
-              filter(Year >= as.numeric(input$year_since))
-
+          
+          if (input$gte == "Grouped") {
+            type_of_data <- all_forwards_gte
+            year_filter <- input$year_since
+          } else {
+            type_of_data <- all_forwards_indiv
+            year_filter <- input$year_indiv
+          }
+          
         } else {
 
-          all_scores <- map(all_defenceman_gte, .f = function(x) {
-
-              list(
-                  off_scores = x$factor_scores$off_contribution[which(x$factor_scores$player == input$player)],
-                  def_scores = x$factor_scores$def_contribution[which(x$factor_scores$player == input$player)]
-              )
-          }) %>%
-              bind_rows() %>%
-              bind_cols(
-                  year = seq(2014, as.numeric(last_year_gte), 1),
-                  .) %>%
-              rename(
-                  Year = year,
-                  `Offensive Score` = off_scores,
-                  `Defensive Score` = def_scores) %>%
-            filter(Year >= as.numeric(input$year_since))
-
+          if (input$gte == "Grouped") {
+            type_of_data <- all_defenceman_gte
+            year_filter <- input$year_since
+          } else {
+            type_of_data <- all_defenceman_indiv
+            year_filter <- input$year_indiv
+          }
         }
+      
+      all_scores <- map(type_of_data, .f = function(x) {
+        
+        list(
+          off_scores = ifelse(
+            length(x$factor_scores$off_contribution[which(x$factor_scores$player == input$player)]) == 0,
+            NA,
+            x$factor_scores$off_contribution[which(x$factor_scores$player == input$player)]),
+          def_scores = ifelse(
+            length(x$factor_scores$def_contribution[which(x$factor_scores$player == input$player)]) == 0,
+            NA,
+            x$factor_scores$def_contribution[which(x$factor_scores$player == input$player)])
+        )
+      }) %>%
+        bind_rows() %>%
+        bind_cols(
+          year = seq(2014, 2014 + nrow(.) - 1, 1),
+          .) %>%
+        rename(
+          Year = year,
+          `Offensive Score` = off_scores,
+          `Defensive Score` = def_scores) %>%
+        filter(Year >= as.numeric(year_filter))
 
       ggplot(data = all_scores, aes(x = Year, y = `Offensive Score`)) +
+                geom_hline(yintercept = 0, colour = "red", size = 1) +
                 geom_line(stat = "identity", color = "white", size = 3) +
+                geom_line(aes(x = Year, y = `Defensive Score`), stat = "identity", color = "#555555", alpha = 0.8, size = 3) + 
                 labs(
-                    title = "Offensive Score Over Time",
+                    title = "Scores Over Time",
+                    subtitle = "Offensive Score in White, Defensive Score in Black, Red is Average",
                     x = "Using Data From Year",
-                    y = "Offensive Score"
+                    y = "Score"
                     ) +
                 theme_minimal() +
         theme(
           plot.background = element_rect(colour = "#e3e3e3", fill = "#39cacc"),
-          plot.title = element_text(colour = "#555555"),
-          axis.title = element_text(colour = "#555555", face = "bold")
+          plot.title = element_text(colour = "#555555", size = 20),
+          axis.title = element_text(colour = "#555555", face = "bold"),
+          plot.subtitle = element_text(colour = "#555555")
         )
 
     })
