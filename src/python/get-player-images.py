@@ -41,25 +41,33 @@ def main(chromedriver_path, path_out, player_list):
 	options.add_argument('--no-proxy-server')
 	options.add_argument("--proxy-server='direct://'")
 	options.add_argument("--proxy-bypass-list=*")
+	options.add_argument("window-size=1200x600")
 
 	driver = webdriver.Chrome(chromedriver_path, options=options)	
 	player_list = pd.read_csv(player_list)['player'].tolist()
 	
 	for player in player_list:
 		
-		driver.get('https://www.nhl.com/player')
+		all_files = os.listdir(path_out)
 		name_split = player.split(" ")
-		time.sleep(10)
-		driver.find_element_by_css_selector('#searchTerm').send_keys(player)
-		time.sleep(10)
-		driver.find_element_by_css_selector('.typeahead-search-hidden-els .search-result-highlight').click()
-		driver.get(url)
-		time.sleep(10)
-		img = driver.find_element_by_css_selector('.player-jumbotron--responsive .player-jumbotron-vitals__headshot-image')
-		src = img.get_attribute('src')
-		urllib.request.urlretrieve(src, path_out + "/" + name_split[0] + "_" + name_split[1] + ".jpg")
 		
+		if name_split[0] + "_" + name_split[1] + ".jpg" in all_files:
+			continue
+		else:
+			
+			if player == "j.t. brown":
+				player = "jt brown"
 	
+			driver.get('https://www.nhl.com/player')
+			time.sleep(15)
+			driver.find_element_by_css_selector('#searchTerm').send_keys(player)
+			time.sleep(40)
+			driver.find_element_by_css_selector('.typeahead-search-hidden-els .search-result-highlight').click()
+			time.sleep(20)
+			img = driver.find_element_by_css_selector('.player-jumbotron--responsive .player-jumbotron-vitals__headshot-image')
+			src = img.get_attribute('src')
+			urllib.request.urlretrieve(src, path_out + "/" + name_split[0] + "_" + name_split[1] + ".jpg")
+		
 main(
 	opt['--chromedriver_path'],
 	opt['--path_out'],
