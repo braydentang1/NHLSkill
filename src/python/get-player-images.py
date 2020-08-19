@@ -12,10 +12,10 @@ Options:
 import numpy as np
 import pandas as pd
 import requests
+import shutil
 import urllib.request
 from selenium import webdriver
 import os
-import pickle
 from docopt import docopt
 import re
 import time
@@ -49,15 +49,30 @@ def main(chromedriver_path, path_out, player_list):
 	for player in player_list:
 		
 		all_files = os.listdir(path_out)
-		name_split = player.split(" ")
+		name_split = player.split(' ')
 		
-		if name_split[0] + "_" + name_split[1] + ".jpg" in all_files:
+		if name_split[0] + '_' + name_split[1] + '.jpg' in all_files:
 			continue
 		else:
-			
-			if player == "j.t. brown":
-				player = "jt brown"
-	
+			if player == 'j.t. brown':
+				player = 'jt brown'
+			elif player == 'mike cammalleri':
+				player = 'michael cammalleri'
+			elif player == 'nick shore':
+				player = 'nicholas shore'
+			elif player == 'patrick maroon':
+				player = 'pat maroon'
+			elif player == 'evgeny dadonov':
+				player = 'evgenii dadonov'
+			elif player == 'chris tanev':
+				player = 'christopher tanev'
+			elif player == 'anthony deangelo':
+				player = 'tony deangelo'
+			elif player == 'alex petrovic':
+				player = 'alexander petrovic'
+			elif player == 'matthew benning':
+				player = 'matt benning'
+				
 			driver.get('https://www.nhl.com/player')
 			time.sleep(15)
 			driver.find_element_by_css_selector('#searchTerm').send_keys(player)
@@ -66,7 +81,7 @@ def main(chromedriver_path, path_out, player_list):
 			time.sleep(20)
 			img = driver.find_element_by_css_selector('.player-jumbotron--responsive .player-jumbotron-vitals__headshot-image')
 			src = img.get_attribute('src')
-			urllib.request.urlretrieve(src, path_out + "/" + name_split[0] + "_" + name_split[1] + ".jpg")
+			urllib.request.urlretrieve(src, path_out + '/' + name_split[0] + '_' + name_split[1] + '.jpg')
 		
 main(
 	opt['--chromedriver_path'],
