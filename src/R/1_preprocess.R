@@ -147,7 +147,7 @@ main <- function(year_seasons_gte, year_seasons_indiv, raw_data_path,
 		select(player, year, toi) %>%
 		rename(toi_pk = toi) 
 	
-	# Bind all NST data together. 
+	# Bind all NST data together and deal with alternate spelling for some players.
 	all_nst <- reduce(
 		list(all_nst_individual, all_nst_non_relative, all_nst_pp, all_nst_pk),
 		.f = function(x, y) left_join(x, y, by = c("player", "year"))) %>%
@@ -158,8 +158,9 @@ main <- function(year_seasons_gte, year_seasons_indiv, raw_data_path,
 			player == "michael matheson" ~ "mike matheson",
 			player == "christopher tanev" ~ "chris tanev",
 			player == "evgenii dadonov" ~ "evgeny dadonov",
+			player == "anthony deangelo" ~ "tony deangelo",
 			TRUE ~ player
-		))
+		)) 
 	
 	# Combine all data together from both NST and Evolving Hockey
 	all_data <- left_join(all_eh, all_nst, by = c("player", "year"))
