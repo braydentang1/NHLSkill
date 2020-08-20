@@ -5,6 +5,7 @@ library(ggthemes)
 library(patchwork)
 
 # Define server logic required to draw a histogram
+
 server <- function(input, output, session) {
     
     observe({
@@ -18,6 +19,12 @@ server <- function(input, output, session) {
     lookup <- reactive({
     
         position <- all_players$position[which(input$player == all_players$player)]
+        
+        if (all_players$year[which(all_players$player == input$player)] != 2020) {
+          team <- "Inactive/Retired"
+        } else {
+          team <- team_lookup$team[which(team_lookup$accronym == all_players$team[which(input$player == all_players$player)])]
+        }
         
         # Brent Burns changed to defenceman and therefore,
         # has two entries. Use the D entry.
@@ -51,6 +58,7 @@ server <- function(input, output, session) {
         
         list(
             position = position,
+            team = team,
             off_score = off_score,
             def_score = def_score
         )
@@ -59,12 +67,25 @@ server <- function(input, output, session) {
 
     output$player_off_score <- renderInfoBox({
         display_off_score <- ifelse(length(lookup()$off_score) == 0, NA, lookup()$off_score)
-        infoBox("Offensive \n Score", round(display_off_score, 2), icon = icon("chevron-up", lib = "glyphicon"), color = "blue", fill = TRUE)
+        infoBox(
+          "Offensive \n Score",
+          round(display_off_score, 2),
+          icon = icon("chevron-up", lib = "glyphicon"),
+          color = "blue",
+          fill = TRUE
+          )
     })
         
     output$player_def_score <- renderInfoBox({
         display_def_score <- ifelse(length(lookup()$def_score) == 0, NA, lookup()$def_score)
-        infoBox("Defensive \n Score", round(display_def_score, 2), icon = icon("tower", lib = "glyphicon"), color = "blue", fill = TRUE)
+        infoBox(
+            "Defensive \n Score",
+            round(display_def_score, 2),
+            icon = icon("tower", lib = "glyphicon"),
+            color = "blue",
+            fill = TRUE
+            )
+      
     })
     
     output$player <- renderText({
@@ -83,12 +104,12 @@ server <- function(input, output, session) {
     
     output$profile <- renderUI({
         
-        full_name <- str_split_fixed(input$player, pattern = " ", n = 2)
-        name_id <- paste(full_name, collapse = "_")
+        full_name <- str_split(input$player, pattern = " ")[[1]]
+        name_id <- paste(full_name[1:2], collapse = "_")
         
         widgetUserBox(
             title = input$player,
-            subtitle = position(),
+            subtitle = paste(position(), ", ", lookup()$team, sep = ""),
             src = paste0("images/", "players/", name_id, ".jpg"), 
             boxToolSize = "lg",
             width = 12,
@@ -198,7 +219,7 @@ server <- function(input, output, session) {
       }
     
       off_plot <- ggplot(graphing_dist, aes(x = off_contribution)) +
-        geom_density(fill = "#ffffff", bw = 0.10) +
+        geom_density(fill = "#ffffff") +
         geom_vline(xintercept = lookup()$off_score) + 
         theme_minimal() + 
         labs(
@@ -213,7 +234,7 @@ server <- function(input, output, session) {
         )
       
       def_plot <- ggplot(graphing_dist, aes(x = def_contribution)) +
-        geom_density(fill = "#555555", bw = 0.1) +
+        geom_density(fill = "#555555") +
         geom_vline(xintercept = lookup()$def_score) +
         theme_minimal() + 
         labs(
@@ -237,6 +258,5 @@ server <- function(input, output, session) {
       )
       
     })
-    
-        
-}
+  
+  }
