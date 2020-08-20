@@ -72,7 +72,8 @@ ui <- htmlTemplate(
     	      width = 12,
     	      plotOutput("distribution", height = "200px")
     	    )
-    	   )
+    	   ),
+    	  br(),
     	  )
     	 )
       )
