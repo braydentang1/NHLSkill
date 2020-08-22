@@ -258,5 +258,33 @@ server <- function(input, output, session) {
       )
     })
     
-  
+    observeEvent(input$active_only, {
+      
+      if (input$active_only == TRUE) {
+      
+        all_players_2020_only <- all_players %>%
+          filter(year == 2020) %>%
+          select(player) %>%
+          pull(.)
+      
+        updateSelectInput(
+          session,
+          inputId = "player",
+          choices = all_players_2020_only,
+          selected = "sidney crosby"
+        )
+        
+      } else {
+        updateSelectInput(
+          session,
+          inputId = "player",
+          choices = sort(unique(c(
+            all_forwards_gte[["2014"]]$data$player,
+            all_defenceman_gte[["2014"]]$data$player))),
+          selected = "sidney crosby"
+        )
+      }
+      
+    })
+    
   }

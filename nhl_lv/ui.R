@@ -25,6 +25,7 @@ ui <- htmlTemplate(
     		                "Using Data Since:", sep = "",
     		                min = 2014, step = 1, round = TRUE,
     		                max = 2019, value = 2014)),
+    					prettyCheckbox("active_only", "Active Players Only", value = FALSE, animation = "smooth", fill = FALSE),
     					actionButton("faq", "FAQ", icon = icon("info"))
     	       ),
     	mainPanel(
