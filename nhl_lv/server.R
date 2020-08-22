@@ -1,6 +1,7 @@
 library(shiny)
 library(tidyverse)
 library(shinydashboard)
+library(shinyalert)
 library(ggthemes)
 library(patchwork)
 
@@ -21,7 +22,7 @@ server <- function(input, output, session) {
         position <- all_players$position[which(input$player == all_players$player)]
         
         if (all_players$year[which(all_players$player == input$player)] != 2020) {
-          team <- "Inactive/Retired"
+          team <- "Inactive or <600 2020 TOI"
         } else {
           team <- team_lookup$team[which(team_lookup$accronym == all_players$team[which(input$player == all_players$player)])]
         }
@@ -34,23 +35,14 @@ server <- function(input, output, session) {
         
         if (position == "F") {
             
-            if (input$gte == "Grouped") {
-              year <- as.character(input$year_since)
-              scores <- all_forwards_gte[[year]]$factor_scores
-            } else {
-              year <- as.character(input$year_indiv)
-              scores <- all_forwards_indiv[[year]]$factor_scores
-            }
+          year <- as.character(input$year_since)
+          scores <- all_forwards_gte[[year]]$factor_scores
           
         } else {
           
-          if (input$gte == "Grouped") {
-            year <- as.character(input$year_since)
-            scores <- all_defenceman_gte[[year]]$factor_scores
-          } else {
-            year <- as.character(input$year_indiv)
-            scores <- all_defenceman_indiv[[year]]$factor_scores
-          }
+          year <- as.character(input$year_since)
+          scores <- all_defenceman_gte[[year]]$factor_scores
+        
         }
 
         off_score <- scores$off_contribution[which(scores$player == input$player)]
@@ -130,25 +122,14 @@ server <- function(input, output, session) {
       
         if (position == "F") {
           
-          if (input$gte == "Grouped") {
-            type_of_data <- all_forwards_gte
-            year_filter <- input$year_since
-          } else {
-            type_of_data <- all_forwards_indiv
-            # If individual, just don't filter - no point.
-            year_filter <- 2014
-          }
+          type_of_data <- all_forwards_gte
+          year_filter <- input$year_since
           
         } else {
 
-          if (input$gte == "Grouped") {
-            type_of_data <- all_defenceman_gte
-            year_filter <- input$year_since
-          } else {
-            type_of_data <- all_defenceman_indiv
-            # If individual, just don't filter - no point.
-            year_filter <- 2014
-          }
+          type_of_data <- all_defenceman_gte
+          year_filter <- input$year_since
+        
         }
       
       all_scores <- map(type_of_data, .f = function(x) {
@@ -258,5 +239,14 @@ server <- function(input, output, session) {
       )
       
     })
+    
+    observeEvent(input$faq, {
+      show_alert(
+        title = "Wow",
+        text = "AYY BUDD",
+        type = "info"
+      )
+    })
+    
   
   }

@@ -1,14 +1,13 @@
+library(tidyverse)
 library(shiny)
 library(tools)
 library(shinyWidgets)
 library(shinydashboard)
+library(shinyalert)
 library(shinydashboardPlus)
 
 all_forwards_gte <- read_rds("results/models/gte/forwards.rds")
 all_defenceman_gte <- read_rds("results/models/gte/defenceman.rds")
-
-all_forwards_indiv <- read_rds("results/models/indiv/forwards.rds")
-all_defenceman_indiv <- read_rds("results/models/indiv/defenceman.rds")
 
 years <- seq(2014, 2019, 1)
 all_forwards_gte_u <- map(years, function(x) {
