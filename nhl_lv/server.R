@@ -252,8 +252,11 @@ server <- function(input, output, session) {
     
     observeEvent(input$faq, {
       show_alert(
-        title = "Wow",
-        text = "AYY BUDD",
+        title = "FAQ",
+        text = p(HTML("• A score above (below) 0 implies that the player is above (below) average for offence/defence. A player of the same position with a higher score has more offensive/defensive contribution than a player with a lower score. <br> <br>
+        • All scores are in relation to other players of the same position (i.e. comparing a forward against a defenceman is meaningless). <br> <br>
+        • The model is hierarchical (random intercept). Therefore, players who entered the league after the year that is selected still have their scores influenced by players who came before, due to the global pooling effect. <br> <br>
+        • Players who have less than 600 minutes of time on ice in 2020 are considered inactive/retired."), style = "text-align: justify"),
         type = "info"
       )
     })
