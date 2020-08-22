@@ -3,6 +3,7 @@ library(tidyverse)
 library(shinydashboard)
 library(shinyalert)
 library(ggthemes)
+library(plotly)
 library(patchwork)
 
 # Define server logic required to draw a histogram
@@ -110,7 +111,7 @@ server <- function(input, output, session) {
         
         })
     
-    output$over_time <- renderPlot({
+    output$over_time <- renderPlotly({
 
         # Brent Burns changed to defenceman and therefore,
         # has two entries. Use the D entry.
@@ -154,9 +155,10 @@ server <- function(input, output, session) {
           `Offensive Score` = off_scores,
           `Defensive Score` = def_scores) %>%
         filter(Year >= as.numeric(year_filter)) %>%
+        mutate(Year = as.factor(Year)) %>%
         gather(key = `Score Type`, value = Score, -Year)
 
-      ggplot(data = all_scores, aes(x = as.factor(Year), y = Score, fill = `Score Type`)) +
+      ggplotly(ggplot(data = all_scores, aes(x = Year, y = Score, fill = `Score Type`)) +
                 geom_hline(yintercept = 0, colour = "red", size = 1) +
                 geom_bar(stat = "identity", position = "dodge2") +
                 labs(
@@ -173,10 +175,11 @@ server <- function(input, output, session) {
           axis.title = element_text(colour = "#555555", face = "bold"),
           plot.subtitle = element_text(colour = "#555555")
         )
-
+      ) %>% layout(plot_bgcolor = "#39cacc") %>% 
+        layout(paper_bgcolor = "#39cacc")
     })
     
-    output$distribution <- renderPlot({
+    output$distribution <- renderPlotly({
       
       if (input$player == "brent burns") {
         position <- "D"
@@ -188,18 +191,18 @@ server <- function(input, output, session) {
         graphing_dist <- all_forwards_gte_u[[as.character(input$year_since)]] %>%
           filter(player == input$player) %>%
           mutate(
-            off_contribution = as.numeric(off_contribution),
-            def_contribution = as.numeric(def_contribution))
+            `Offensive Score` = as.numeric(off_contribution),
+            `Defensive Score` = as.numeric(def_contribution))
         
       } else {
         graphing_dist <- all_defenceman_gte_u[[as.character(input$year_since)]] %>%
           filter(player == input$player) %>%
           mutate(
-            off_contribution = as.numeric(off_contribution),
-            def_contribution = as.numeric(def_contribution)) 
+            `Offensive Score` = as.numeric(off_contribution),
+            `Defensive Score` = as.numeric(def_contribution)) 
       }
     
-      off_plot <- ggplot(graphing_dist, aes(x = off_contribution)) +
+      off_plot <- ggplot(graphing_dist, aes(x = `Offensive Score`)) +
         geom_density(fill = "#ffffff") +
         geom_vline(xintercept = lookup()$off_score) + 
         theme_minimal() + 
@@ -225,18 +228,25 @@ server <- function(input, output, session) {
         theme(
         plot.background = element_rect(colour = "#e3e3e3", fill = "#39cacc"),
         plot.title = element_text(colour = "#555555", size = 20),
+        legend.title = element_text(colour = "#555555"),
         axis.title = element_text(colour = "#555555", face = "bold"),
         plot.subtitle = element_text(colour = "#555555")
         )
       
-      off_plot + def_plot + plot_annotation(
-        title = "Estimated Score Distributions"
-      ) & theme_minimal() & theme(
-        plot.background = element_rect(colour = "#e3e3e3", fill = "#39cacc"),
-        plot.title = element_text(colour = "#555555", size = 20, hjust = 0.055),
-        axis.title = element_text(colour = "#555555", face = "bold"),
-        plot.subtitle = element_text(colour = "#555555")
-      )
+      subplot(ggplotly(off_plot), ggplotly(def_plot), shareX = TRUE, shareY = TRUE) %>%
+        add_annotations(
+          yref = "paper", 
+          xref = "paper", 
+          y = 1.15, 
+          x = 0, 
+          text = "Offensive and Defensive Score Distributions", 
+          showarrow = F,
+          font = list(size = 20, color = "#555555")
+        ) %>%
+        layout(
+          plot_bgcolor = "#39cacc",
+          paper_bgcolor = "#39cacc",
+          title = list(x = 0.2)) 
       
     })
     

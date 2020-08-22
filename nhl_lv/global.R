@@ -4,6 +4,7 @@ library(tools)
 library(shinyWidgets)
 library(shinydashboard)
 library(shinyalert)
+library(plotly)
 library(shinydashboardPlus)
 
 all_forwards_gte <- read_rds("results/models/gte/forwards.rds")
