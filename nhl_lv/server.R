@@ -23,7 +23,7 @@ server <- function(input, output, session) {
         position <- all_players$position[which(input$player == all_players$player)]
         
         if (all_players$year[which(all_players$player == input$player)] != 2020) {
-          team <- "Inactive or <600 2020 TOI"
+          team <- "Inactive or <600 TOI 2020"
         } else {
           team <- team_lookup$team[which(team_lookup$accronym == all_players$team[which(input$player == all_players$player)])]
         }
