@@ -86,5 +86,5 @@ def main(chromedriver_path, path_out, player_list):
 main(
 	opt['--chromedriver_path'],
 	opt['--path_out'],
-    opt['--player_list']
+	opt['--player_list']
 )
