@@ -39,12 +39,16 @@ server <- function(input, output, session) {
           year <- as.character(input$year_since)
           scores <- all_forwards_gte[[year]]$factor_scores
           uncertainty <- all_forwards_gte_u[[year]]
+          empirical_dist_off <- ecdf(all_forwards_gte[[year]]$factor_scores$off_contribution)
+          empirical_dist_def <- ecdf(all_forwards_gte[[year]]$factor_scores$def_contribution)
           
         } else {
           
           year <- as.character(input$year_since)
           scores <- all_defenceman_gte[[year]]$factor_scores
           uncertainty <- all_defenceman_gte_u[[year]]
+          empirical_dist_off <- ecdf(all_defenceman_gte[[year]]$factor_scores$off_contribution)
+          empirical_dist_def <- ecdf(all_defenceman_gte[[year]]$factor_scores$def_contribution)
         
         }
 
@@ -67,6 +71,8 @@ server <- function(input, output, session) {
             team = team,
             off_score = off_score,
             def_score = def_score,
+            ecdf_off = empirical_dist_off(off_score),
+            ecdf_def = empirical_dist_def(def_score),
             bootstrap_uncertainty = bootstrap_uncertainty
         )
         
@@ -113,11 +119,15 @@ server <- function(input, output, session) {
         
         full_name <- str_split(input$player, pattern = " ")[[1]]
         name_id <- paste(full_name[1:2], collapse = "_")
+        empirical_off <- lookup()$ecdf_off
+        empirical_def <- lookup()$ecdf_def
         
         widgetUserBox(
             title = input$player,
             subtitle = paste(position(), ", ", lookup()$team, sep = ""),
             src = paste0("images/", "players/", name_id, ".jpg"), 
+            p(HTML(paste0(round(empirical_off * 100, 2), "th", " percentile offensively",
+                   "<br>", round(empirical_def * 100, 2), "th", " percentile defensively"))), 
             boxToolSize = "lg",
             width = 12,
             collapsible = FALSE
@@ -296,10 +306,11 @@ server <- function(input, output, session) {
       show_alert(
         title = "FAQ",
         text = p(HTML("• A score above (below) 0 implies that the player is above (below) average for offence/defence. A player of the same position with a higher score has more offensive/defensive contribution than a player with a lower score. <br> <br>
-        • All scores are in relation to other players of the same position (i.e. comparing a forward against a defenceman is meaningless). <br> <br>
+        • All percentiles, scores, and distributions are in relation to other players of the same position (i.e. comparing a forward against a defenceman is meaningless). <br> <br>
         • The model is hierarchical (random intercept). Therefore, players who entered the league after the year that is selected still have their scores influenced by players who came before, due to the global pooling effect. <br> <br>
-        • Players who have less than 600 minutes of time on ice in 2020 are considered inactive/retired."), style = "text-align: justify"),
-        type = "info"
+        • Players who have less than 600 minutes of time on ice in 2020 are considered inactive/retired. <br> <br>
+        • For the distribution plot, pressing autoscale in the plot toolbar (upper right corner of the plot) and adjusting the y-axis placement might be useful."), style = "text-align: justify; font-size: 16px"),
+        type = "info", width = "1000px"
       )
     })
     

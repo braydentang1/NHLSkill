@@ -20,14 +20,14 @@ ui <- htmlTemplate(
     					  all_defenceman_gte[["2014"]]$data$player))),
     					  selected = "sidney crosby"
     					),
+    					prettyCheckbox("active_only", "Active Players Only", value = FALSE, animation = "smooth", fill = FALSE),
     		      tags$div(title = "Scores and distributions estimated using data from this selected year to the most recent year (2020)",
     		               sliderInput("year_since",
     		                "Using Data Since:", sep = "",
     		                min = 2014, step = 1, round = TRUE,
     		                max = 2019, value = 2014)),
-    					prettyCheckbox("active_only", "Active Players Only", value = FALSE, animation = "smooth", fill = FALSE),
-    					sliderInput("uncertain", "Uncertainty Level", min = 80, max = 99, step = 1, value = 90),
-    					actionButton("faq", "FAQ", icon = icon("info"))
+    					sliderInput("uncertain", "Uncertainty Level:", min = 80, max = 99, step = 1, value = 90),
+    					actionButton("faq", "README", icon = icon("info"))
     	       ),
     	mainPanel(
     	  fluidRow(
