@@ -26,6 +26,7 @@ ui <- htmlTemplate(
     		                min = 2014, step = 1, round = TRUE,
     		                max = 2019, value = 2014)),
     					prettyCheckbox("active_only", "Active Players Only", value = FALSE, animation = "smooth", fill = FALSE),
+    					sliderInput("uncertain", "Uncertainty Level", min = 80, max = 99, step = 1, value = 90),
     					actionButton("faq", "FAQ", icon = icon("info"))
     	       ),
     	mainPanel(
@@ -47,14 +48,14 @@ ui <- htmlTemplate(
     	  fluidRow(
     	    column(
     	      width = 12, 
-    	      plotlyOutput("over_time", height = "250px")
+    	      plotlyOutput("over_time", height = "280px")
     	      )
     	    ),
     	  br(),
     	  fluidRow(
     	    column(
     	      width = 12,
-    	      plotlyOutput("distribution", height = "250px")
+    	      plotlyOutput("distribution", height = "280px")
     	    )
     	   ),
     	  br(),

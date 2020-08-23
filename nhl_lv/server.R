@@ -38,22 +38,36 @@ server <- function(input, output, session) {
             
           year <- as.character(input$year_since)
           scores <- all_forwards_gte[[year]]$factor_scores
+          uncertainty <- all_forwards_gte_u[[year]]
           
         } else {
           
           year <- as.character(input$year_since)
           scores <- all_defenceman_gte[[year]]$factor_scores
+          uncertainty <- all_defenceman_gte_u[[year]]
         
         }
 
         off_score <- scores$off_contribution[which(scores$player == input$player)]
         def_score <- scores$def_contribution[which(scores$player == input$player)]
         
+        desired_quantile <- (1 - input$uncertain / 100) / 2 
+        
+        bootstrap_uncertainty <- uncertainty %>%
+          filter(player == input$player) %>%
+          summarise(
+            lower_off = quantile(off_contribution,  desired_quantile),
+            upper_off = quantile(off_contribution, 1 - desired_quantile),
+            lower_def = quantile(def_contribution, desired_quantile),
+            upper_def = quantile(def_contribution, 1 - desired_quantile)
+          )
+        
         list(
             position = position,
             team = team,
             off_score = off_score,
-            def_score = def_score
+            def_score = def_score,
+            bootstrap_uncertainty = bootstrap_uncertainty
         )
         
     })
@@ -201,10 +215,20 @@ server <- function(input, output, session) {
             `Offensive Score` = as.numeric(off_contribution),
             `Defensive Score` = as.numeric(def_contribution)) 
       }
-    
+      
+      uncertainty_df <- lookup()$bootstrap_uncertainty
+      
       off_plot <- ggplot(graphing_dist, aes(x = `Offensive Score`)) +
         geom_density(fill = "#ffffff") +
-        geom_vline(xintercept = lookup()$off_score) + 
+        geom_vline(
+          data = tibble(
+            Bound = c("Estimated Offensive Score", "Lower", "Upper"),
+            Value = c(round(lookup()$off_score, 2), 
+                      round(uncertainty_df$lower_off, 2),
+                      round(uncertainty_df$upper_off, 2))),
+          aes(xintercept = Value, color = Bound)
+        ) +
+        scale_colour_manual(values = c("black", "red", "red")) + 
         theme_minimal() + 
         labs(
           x = "Offensive Score",
@@ -219,7 +243,15 @@ server <- function(input, output, session) {
       
       def_plot <- ggplot(graphing_dist, aes(x = def_contribution)) +
         geom_density(fill = "#555555") +
-        geom_vline(xintercept = lookup()$def_score) +
+        geom_vline(
+          data = tibble(
+            Bound = c("Estimated Defensive Score", "Lower", "Upper"),
+            Value = c(round(lookup()$def_score, 2), 
+                      round(uncertainty_df$lower_def, 2),
+                      round(uncertainty_df$upper_def, 2))),
+          aes(xintercept = Value, color = Bound)
+        ) +
+        scale_colour_manual(values = c("black", "red", "red")) + 
         theme_minimal() + 
         labs(
           x = "Defensive Score",
@@ -237,16 +269,26 @@ server <- function(input, output, session) {
         add_annotations(
           yref = "paper", 
           xref = "paper", 
-          y = 1.15, 
+          y = 1.10, 
           x = 0, 
-          text = "Offensive and Defensive Score Distributions", 
+          text = "Estimated Offensive and Defensive Score Distributions", 
           showarrow = F,
           font = list(size = 20, color = "#555555")
+        ) %>%
+        add_annotations(
+          yref = "paper",
+          xref = "paper",
+          y = 1,
+          x = 0,
+          text = "CI's Marked in Red",
+          showarrow = F,
+          font = list(size = 12, color = "#555555")
         ) %>%
         layout(
           plot_bgcolor = "#39cacc",
           paper_bgcolor = "#39cacc",
-          title = list(x = 0.2)) 
+          title = list(x = 0.2)) %>%
+        hide_legend()
       
     })
     
