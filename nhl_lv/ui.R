@@ -26,8 +26,9 @@ ui <- htmlTemplate(
     		                "Using Data Since:", sep = "",
     		                min = 2014, step = 1, round = TRUE,
     		                max = 2019, value = 2014)),
-    					sliderInput("uncertain", "Uncertainty Level:", min = 80, max = 99, step = 1, value = 90),
-    					actionButton("faq", "README", icon = icon("info"))
+    					tags$div(title = "For controlling the intervals (red bars) in the distribution plots", 
+    					         sliderInput("uncertain", "Uncertainty Level:", min = 80, max = 99, step = 1, value = 90)),
+    					actionButton("faq", "README", icon = icon("info")),
     	       ),
     	mainPanel(
     	  fluidRow(
@@ -59,6 +60,18 @@ ui <- htmlTemplate(
     	    )
     	   ),
     	  br(),
+    	  fluidRow(
+    	    column(
+    	      width = 12,
+    	      tabsetPanel(
+    	        id = "tables",
+    	        tabPanel(title = "Offensive Metrics", value = "off_metrics", 
+    	                 DT::dataTableOutput("key_variables_off")),
+    	        tabPanel(title = "Defensive Metrics", value = "def_metrics",
+    	                 DT::dataTableOutput("key_variables_def")))
+    	    )
+    	  ),
+    	  br()
     	 )
       )
     )

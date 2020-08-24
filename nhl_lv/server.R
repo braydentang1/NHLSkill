@@ -2,8 +2,10 @@ library(shiny)
 library(tidyverse)
 library(shinydashboard)
 library(shinyalert)
+library(sROC)
 library(ggthemes)
 library(plotly)
+library(DT)
 library(patchwork)
 
 # Define server logic required to draw a histogram
@@ -39,21 +41,43 @@ server <- function(input, output, session) {
           year <- as.character(input$year_since)
           scores <- all_forwards_gte[[year]]$factor_scores
           uncertainty <- all_forwards_gte_u[[year]]
-          empirical_dist_off <- ecdf(all_forwards_gte[[year]]$factor_scores$off_contribution)
-          empirical_dist_def <- ecdf(all_forwards_gte[[year]]$factor_scores$def_contribution)
+          
+          relevant_data_off <- all_forwards_gte[["2014"]]$data %>%
+            filter(player == input$player, year >= input$year_since) %>%
+            select(year, ops, off_gar, x_gf, scf)
+          
+          relevant_data_def <- all_forwards_gte[["2014"]]$data %>%
+            filter(player == input$player, year >= input$year_since) %>%
+            select(year, dps, def_gar, x_ga, sca)
+          
+          empirical_dist_off <- kCDF(all_forwards_gte[[year]]$factor_scores$off_contribution)
+          empirical_dist_def <- kCDF(all_forwards_gte[[year]]$factor_scores$def_contribution)
           
         } else {
           
           year <- as.character(input$year_since)
           scores <- all_defenceman_gte[[year]]$factor_scores
           uncertainty <- all_defenceman_gte_u[[year]]
-          empirical_dist_off <- ecdf(all_defenceman_gte[[year]]$factor_scores$off_contribution)
-          empirical_dist_def <- ecdf(all_defenceman_gte[[year]]$factor_scores$def_contribution)
+          
+          relevant_data_off <- all_defenceman_gte[["2014"]]$data %>%
+            filter(player == input$player, year >= input$year_since) %>%
+            select(year, ops, off_gar, x_gf, scf)
+          
+          relevant_data_def <- all_defenceman_gte[["2014"]]$data %>%
+            filter(player == input$player, year >= input$year_since) %>%
+            select(year, dps, def_gar, x_ga, sca)
+          
+          empirical_dist_off <- kCDF(all_defenceman_gte[[year]]$factor_scores$off_contribution)
+          empirical_dist_def <- kCDF(all_defenceman_gte[[year]]$factor_scores$def_contribution)
         
         }
 
         off_score <- scores$off_contribution[which(scores$player == input$player)]
         def_score <- scores$def_contribution[which(scores$player == input$player)]
+        
+        # Get the closest cutpoint of the kCDF evaluation that is larger than desired point
+        percentile_off <- empirical_dist_off$Fhat[which(off_score - empirical_dist_off$x < 0)[1]]
+        percentile_def <- empirical_dist_def$Fhat[which(def_score - empirical_dist_def$x < 0)[1]]
         
         desired_quantile <- (1 - input$uncertain / 100) / 2 
         
@@ -71,8 +95,10 @@ server <- function(input, output, session) {
             team = team,
             off_score = off_score,
             def_score = def_score,
-            ecdf_off = empirical_dist_off(off_score),
-            ecdf_def = empirical_dist_def(def_score),
+            relevant_data_off = relevant_data_off,
+            relevant_data_def = relevant_data_def,
+            ecdf_off = percentile_off,
+            ecdf_def = percentile_def,
             bootstrap_uncertainty = bootstrap_uncertainty
         )
         
@@ -309,6 +335,8 @@ server <- function(input, output, session) {
         • All percentiles, scores, and distributions are in relation to other players of the same position (i.e. comparing a forward against a defenceman is meaningless). <br> <br>
         • The model is hierarchical (random intercept). Therefore, players who entered the league after the year that is selected still have their scores influenced by players who came before, due to the global pooling effect. <br> <br>
         • Players who have less than 600 minutes of time on ice in 2020 are considered inactive/retired. <br> <br>
+        • I purposely abbreviate CI as depending on your perspective these intervals can either be confidence or credible intervals. <br> <br>
+        • All statistics in the table are centered to have zero mean and unit variance.
         • For the distribution plot, pressing autoscale in the plot toolbar (upper right corner of the plot) and adjusting the y-axis placement might be useful."), style = "text-align: justify; font-size: 16px"),
         type = "info", width = "1000px"
       )
@@ -342,5 +370,59 @@ server <- function(input, output, session) {
       }
       
     })
+    
+    output$key_variables_off <- renderDataTable({
+      
+      brks <- quantile(lookup()$relevant_data_off[, -1], probs = seq(.05, .95, .05), na.rm = TRUE)
+      clrs <- round(seq(202, 115, length.out = length(brks) + 1), 0) %>%
+        {paste0("rgb(57", ",", ., ",", "204)")}
+      
+      lookup()$relevant_data_off %>%
+        mutate(year = as.factor(year)) %>%
+        rename(Year = year, SCF = scf, XGF = x_gf, OPS = ops, `Off. GAR` = off_gar) %>%
+        mutate_if(is.numeric, .funs = list(function(x) round(x, 2))) %>%
+        datatable(., options = list(lengthChange = FALSE, searching = FALSE),
+                  callback =  JS("
+        var tips = ['Row Number', 'Year', 'Offensive Point Share', 'Offensive Goals Above Replacement', 
+        'Expected Goals For', 'Scoring Chances For'],
+        header = table.columns().header();
+        for (var i = 0; i < tips.length; i++) {
+          $(header[i]).attr('title', tips[i]);
+        }
+        ")) %>%
+        formatStyle(
+          columns = c("OPS", "Off. GAR", "XGF", "SCF"),
+          backgroundColor = styleInterval(brks, clrs),
+          fontWeight = "bold",
+          color = styleInterval(cuts = 0, values = c("red", "#555555"))
+        )
+    }, width = "100%")
+    
+    output$key_variables_def <- DT::renderDataTable({
+      
+      brks <- quantile(lookup()$relevant_data_def[, -1], probs = seq(.05, .95, .05), na.rm = TRUE)
+      clrs <- round(seq(202, 115, length.out = length(brks) + 1), 0) %>%
+        {paste0("rgb(57", ",", ., ",", "204)")}
+      
+      lookup()$relevant_data_def %>%
+        mutate(year = as.factor(year)) %>%
+        rename(Year = year, SCA = sca, XGA = x_ga, DPS = dps, `Def. GAR` = def_gar) %>%
+        mutate_if(is.numeric, .funs = list(function(x) round(x, 2))) %>%
+        datatable(., options = list(lengthChange = FALSE, searching = FALSE),
+                  callback = JS("
+        var tips = ['Row Number', 'Year', 'Defensive Point Share', 'Defensive Goals Above Replacement', 
+        'Expected Goals Against (lower is better)', 'Scoring Chances Against (lower is better)'],
+        header = table.columns().header();
+        for (var i = 0; i < tips.length; i++) {
+          $(header[i]).attr('title', tips[i]);
+        }
+        ")) %>%
+        formatStyle(
+          columns = c("DPS", "Def. GAR", "XGA", "SCA"),
+          backgroundColor = styleInterval(brks, clrs),
+          fontWeight = "bold",
+          color = styleInterval(cuts = 0, values = c("red", "#555555"))
+        )
+    }, width = "100%")
     
   }

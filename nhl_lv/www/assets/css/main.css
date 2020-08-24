@@ -2875,3 +2875,11 @@ body.is-menu-visible #menu {
 	color: #555555 !important;
 	padding: 0 1.75rem !important;
 }
+
+.nav-tabs>li.active>a, .nav-tabs>li.active>a:focus, .nav-tabs>li.active>a:hover {
+	background-color: #39cacc !important;
+}
+
+.nav-tabs>li>a {
+	background-color: #ffffff;
+}
