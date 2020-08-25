@@ -14,18 +14,16 @@ Options:
 --google_password=<google_password>  Password for your Google email above.
 '''
 
-from bs4 import BeautifulSoup
 import numpy as np
 import pandas as pd
-import requests
-from urllib.request import urlopen
-from selenium import webdriver
 import os
-import pickle
-from docopt import docopt
 import re
 import time
 from selenium.webdriver.chrome.options import Options
+from urllib.request import urlopen
+from selenium import webdriver
+from bs4 import BeautifulSoup
+from docopt import docopt
 
 opt = docopt(__doc__)
 

@@ -10,12 +10,12 @@ Options:
 
 import pandas as pd
 import requests
-from urllib.request import urlopen
-from bs4 import BeautifulSoup
 import os
-from docopt import docopt
 import re
 import time
+from docopt import docopt
+from urllib.request import urlopen
+from bs4 import BeautifulSoup
 
 opt = docopt(__doc__)
 
@@ -37,6 +37,7 @@ def main(path_out, years):
 		
 		player_names = page_souped.select('th+ .left a')
 		
+		# The page changes with more columns after (and including) 2015.
 		if (year < 2015):
 			ops = page_souped.select('.right:nth-child(23)')	
 			dps = page_souped.select('.right:nth-child(24)')
@@ -48,6 +49,7 @@ def main(path_out, years):
 		all_ops = [float(ops_val.text) for ops_val in ops]
 		all_dps = [float(dps_val.text) for dps_val in dps]
 		
+		# Put everything into a dataframe and output.
 		all_data = pd.DataFrame({'player': all_names, 'ops': all_ops, 'dps': all_dps})
 		all_data = all_data.groupby('player').first().reset_index()
 		all_data.to_csv(path_out + "/point_shares/" + str(year) + '.csv')

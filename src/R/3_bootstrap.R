@@ -142,6 +142,8 @@ bootstrap_replicate <- function(seed, data, model_file, multilevel = TRUE) {
 			sample_n(size = sample_counts) %>%
 			select(-sample_counts, -actual_counts)
 		
+		# Fit the model on the bootstrap sample. Get the factor scores, bind
+		# with seed number.
 		fit_bootstrap(
 			sample_cluster_counts,
 			model_code = model_file,
@@ -151,10 +153,15 @@ bootstrap_replicate <- function(seed, data, model_file, multilevel = TRUE) {
 	
 	} else {
 		
+		# Simple sample with replacement - no need for anything special in this case
+		# if data is not grouped.
 		set.seed(seed)
 		sample_cluster_counts <- data %>%
 			sample_n(size = nrow(.), replace = TRUE)
 		
+		
+		# Fit the model on the bootstrap sample. Get the factor scores, bind
+		# with seed number.
 		fit_bootstrap(
 			sample_cluster_counts,
 			original_data = data,
@@ -173,7 +180,7 @@ main <- function(original_fitted_models_path, model_file_path, path_out, num_sam
 	multilevel_temp <- ifelse(multilevel == "Y", TRUE, FALSE)
 	all_original_models <- read_rds(original_fitted_models_path)
 	start_year <- as.numeric(names(all_original_models)[1]) - 1
-	all_years_bootstrap = vector("list", length(all_original_models))
+	all_years_bootstrap <- vector("list", length(all_original_models))
 	model_file <- read_file(model_file_path)
 	
 	# If path_out doesn't exist, create it.
@@ -181,6 +188,8 @@ main <- function(original_fitted_models_path, model_file_path, path_out, num_sam
 		dir.create(path_out, recursive = TRUE)
 	}
 	
+	# Go through all of the years, and bootstrap in parallel. Output .rds file
+	# to the output path specified in the terminal.
 		for (i in seq_along(all_years_bootstrap)) {
 	
 			data <- all_original_models[[i]]$data

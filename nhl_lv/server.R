@@ -1,6 +1,7 @@
 library(shiny)
 library(tidyverse)
 library(shinydashboard)
+library(shinydashboardPlus)
 library(shinyalert)
 library(sROC)
 library(ggthemes)
@@ -8,10 +9,10 @@ library(plotly)
 library(DT)
 library(patchwork)
 
-# Define server logic required to draw a histogram
-
 server <- function(input, output, session) {
     
+  # If the user clicks on an element that produces #indiv as a query, move
+  # to the correct tab in the viewer.
     observe({
         query <- getUrlHash(session = getDefaultReactiveDomain())
         print(query)
@@ -20,10 +21,14 @@ server <- function(input, output, session) {
         }
     })
     
+  # Lookup all relevant scores and stats for a particular player once selected. 
+  # Mostly a convenience function.
     lookup <- reactive({
     
         position <- all_players$position[which(input$player == all_players$player)]
         
+        # Players who had less than 600 minutes were not modelled. Therefore
+        # if a player has <600 minutes in 2020 they are considered inactive.
         if (all_players$year[which(all_players$player == input$player)] != 2020) {
           team <- "Inactive or <600 TOI 2020"
         } else {
@@ -37,11 +42,15 @@ server <- function(input, output, session) {
         }
         
         if (position == "F") {
-            
+          
+          # Get relevant data from the global variables.  
           year <- as.character(input$year_since)
           scores <- all_forwards_gte[[year]]$factor_scores
           uncertainty <- all_forwards_gte_u[[year]]
           
+          # In each .rds object, there is the data set that the scores were fit on.
+          # The 2014 data set is a strict superset of all other years due to the grouping/
+          # hierarchichal modelling approach I took. Therefore, only need 2014 data.
           relevant_data_off <- all_forwards_gte[["2014"]]$data %>%
             filter(player == input$player, year >= input$year_since) %>%
             select(year, ops, off_gar, x_gf, scf)
@@ -50,15 +59,21 @@ server <- function(input, output, session) {
             filter(player == input$player, year >= input$year_since) %>%
             select(year, dps, def_gar, x_ga, sca)
           
+          # Fits kernel smoothed CDF's to avoid "0th percentile" and "100th percentile"
+          # estimates.
           empirical_dist_off <- kCDF(all_forwards_gte[[year]]$factor_scores$off_contribution)
           empirical_dist_def <- kCDF(all_forwards_gte[[year]]$factor_scores$def_contribution)
           
         } else {
           
+          # Get relevant data from the global variables.  
           year <- as.character(input$year_since)
           scores <- all_defenceman_gte[[year]]$factor_scores
           uncertainty <- all_defenceman_gte_u[[year]]
           
+          # In each .rds object, there is the data set that the scores were fit on.
+          # The 2014 data set is a strict superset of all other years due to the grouping/
+          # hierarchichal modelling approach I took. Therefore, only need 2014 data.
           relevant_data_off <- all_defenceman_gte[["2014"]]$data %>%
             filter(player == input$player, year >= input$year_since) %>%
             select(year, ops, off_gar, x_gf, scf)
@@ -67,11 +82,14 @@ server <- function(input, output, session) {
             filter(player == input$player, year >= input$year_since) %>%
             select(year, dps, def_gar, x_ga, sca)
           
+          # Fits kernel smoothed CDF's to avoid "0th percentile" and "100th percentile"
+          # estimates.
           empirical_dist_off <- kCDF(all_defenceman_gte[[year]]$factor_scores$off_contribution)
           empirical_dist_def <- kCDF(all_defenceman_gte[[year]]$factor_scores$def_contribution)
         
         }
-
+        
+        # Get the fitted offensive and defensive scores precomputed.
         off_score <- scores$off_contribution[which(scores$player == input$player)]
         def_score <- scores$def_contribution[which(scores$player == input$player)]
         
@@ -81,6 +99,8 @@ server <- function(input, output, session) {
         
         desired_quantile <- (1 - input$uncertain / 100) / 2 
         
+        # Find the selected player's bootstrap samples. Calculate the needed
+        # quantiles for the distribution plot of the factor scores.
         bootstrap_uncertainty <- uncertainty %>%
           filter(player == input$player) %>%
           summarise(
@@ -90,6 +110,7 @@ server <- function(input, output, session) {
             upper_def = quantile(def_contribution, 1 - desired_quantile)
           )
         
+        # Output all required quantities in a list.
         list(
             position = position,
             team = team,
@@ -104,6 +125,7 @@ server <- function(input, output, session) {
         
     })
 
+    # Offensive Score info box.
     output$player_off_score <- renderInfoBox({
         display_off_score <- ifelse(length(lookup()$off_score) == 0, NA, lookup()$off_score)
         infoBox(
@@ -114,7 +136,8 @@ server <- function(input, output, session) {
           fill = TRUE
           )
     })
-        
+    
+    # Defensive Score info box.
     output$player_def_score <- renderInfoBox({
         display_def_score <- ifelse(length(lookup()$def_score) == 0, NA, lookup()$def_score)
         infoBox(
@@ -127,10 +150,12 @@ server <- function(input, output, session) {
       
     })
     
+    # Display the player's name in the profile/user box.
     output$player <- renderText({
         input$player
     })
     
+    # Display the player's position in the profile/user box.
     position <- reactive({
         
         if (lookup()$position == "F") {
@@ -141,13 +166,19 @@ server <- function(input, output, session) {
         position    
     })
     
+    # The profile/user box. Needs to be done in the server file since it is 
+    # generated dynamically based on user input first.
     output$profile <- renderUI({
         
+      # Get the file name of the player as generated by get-player-images.py
         full_name <- str_split(input$player, pattern = " ")[[1]]
         name_id <- paste(full_name[1:2], collapse = "_")
+        # Lookup the percentile the player's offensive/defensive scores sit at
+        # relative to other players of the same position.
         empirical_off <- lookup()$ecdf_off
         empirical_def <- lookup()$ecdf_def
         
+        # Output.
         widgetUserBox(
             title = input$player,
             subtitle = paste(position(), ", ", lookup()$team, sep = ""),
@@ -161,6 +192,7 @@ server <- function(input, output, session) {
         
         })
     
+    # The plot showing the scores over time.
     output$over_time <- renderPlotly({
 
         # Brent Burns changed to defenceman and therefore,
@@ -183,6 +215,10 @@ server <- function(input, output, session) {
         
         }
       
+      
+      # Iterate over the preexisiting list and create another list that finds 
+      # the selected player's offensive and defensive scores. If they don't exist,
+      # example: player retired, then NA.
       all_scores <- map(type_of_data, .f = function(x) {
         
         list(
@@ -208,6 +244,7 @@ server <- function(input, output, session) {
         mutate(Year = as.factor(Year)) %>%
         gather(key = `Score Type`, value = Score, -Year)
 
+      # Output plotly graph with a bunch of styling to fit the theme.
       ggplotly(ggplot(data = all_scores, aes(x = Year, y = Score, fill = `Score Type`)) +
                 geom_hline(yintercept = 0, colour = "red", size = 1) +
                 geom_bar(stat = "identity", position = "dodge2") +
@@ -229,6 +266,7 @@ server <- function(input, output, session) {
         layout(paper_bgcolor = "#39cacc")
     })
     
+    # Distribution plots of offensive and defensive scores.
     output$distribution <- renderPlotly({
       
       if (input$player == "brent burns") {
@@ -252,8 +290,10 @@ server <- function(input, output, session) {
             `Defensive Score` = as.numeric(def_contribution)) 
       }
       
+      # For the (1-alpha/2)% CI's.
       uncertainty_df <- lookup()$bootstrap_uncertainty
       
+      # Offensive score distribution plot with CI.
       off_plot <- ggplot(graphing_dist, aes(x = `Offensive Score`)) +
         geom_density(fill = "#ffffff") +
         geom_vline(
@@ -277,6 +317,7 @@ server <- function(input, output, session) {
           plot.subtitle = element_text(colour = "#555555")
         )
       
+      # Defensive score distribution plot with CI.
       def_plot <- ggplot(graphing_dist, aes(x = def_contribution)) +
         geom_density(fill = "#555555") +
         geom_vline(
@@ -301,6 +342,8 @@ server <- function(input, output, session) {
         plot.subtitle = element_text(colour = "#555555")
         )
       
+      # Combine the two plots so that they sit beside each other as one complete plot.
+      # Have to add in the title as annotations since the overall package is strange.
       subplot(ggplotly(off_plot), ggplotly(def_plot), shareX = TRUE, shareY = TRUE) %>%
         add_annotations(
           yref = "paper", 
@@ -328,6 +371,8 @@ server <- function(input, output, session) {
       
     })
     
+    # For the README button. This controls the output of what is actually displayed
+    # to the user.
     observeEvent(input$faq, {
       show_alert(
         title = "FAQ",
@@ -336,16 +381,18 @@ server <- function(input, output, session) {
         • The model is hierarchical (random intercept). Therefore, players who entered the league after the year that is selected still have their scores influenced by players who came before, due to the global pooling effect. <br> <br>
         • Players who have less than 600 minutes of time on ice in 2020 are considered inactive/retired. <br> <br>
         • I purposely abbreviate CI as depending on your perspective these intervals can either be confidence or credible intervals. <br> <br>
-        • All statistics in the table are centered to have zero mean and unit variance.
+        • All statistics in the table are centered to have zero mean and unit variance per each year and position. <br> <br>
         • For the distribution plot, pressing autoscale in the plot toolbar (upper right corner of the plot) and adjusting the y-axis placement might be useful."), style = "text-align: justify; font-size: 16px"),
         type = "info", width = "1000px"
       )
     })
     
+    # To allow the user to remove inactive players from the selectInput dropdown.
     observeEvent(input$active_only, {
       
       if (input$active_only == TRUE) {
       
+        # If a player did not play in 2020, they are inactive. 
         all_players_2020_only <- all_players %>%
           filter(year == 2020) %>%
           select(player) %>%
@@ -359,6 +406,7 @@ server <- function(input, output, session) {
         )
         
       } else {
+        # Don't do anything if the box isn't checked.
         updateSelectInput(
           session,
           inputId = "player",
@@ -370,9 +418,13 @@ server <- function(input, output, session) {
       }
       
     })
-    
+  
+    # For output tables - display the statistics that are actually producing the
+    # offensive and defensive scores. Includes some JavaScript for tooltip mouse
+    # hovers.
     output$key_variables_off <- renderDataTable({
       
+      # This is to produce a heatmap where darker colours correspond with larger values.
       brks <- quantile(lookup()$relevant_data_off[, -1], probs = seq(.05, .95, .05), na.rm = TRUE)
       clrs <- round(seq(202, 115, length.out = length(brks) + 1), 0) %>%
         {paste0("rgb(57", ",", ., ",", "204)")}
@@ -398,6 +450,7 @@ server <- function(input, output, session) {
         )
     }, width = "100%")
     
+    # Same thing as above, but for offence.
     output$key_variables_def <- DT::renderDataTable({
       
       brks <- quantile(lookup()$relevant_data_def[, -1], probs = seq(.05, .95, .05), na.rm = TRUE)

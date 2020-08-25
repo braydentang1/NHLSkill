@@ -12,14 +12,12 @@ Options:
 
 import numpy as np
 import pandas as pd
-import requests
-from urllib.request import urlopen
-from selenium import webdriver
-import os
-import pickle
-from docopt import docopt
 import re
 import time
+import os
+from urllib.request import urlopen
+from docopt import docopt
+from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.support.select import Select
 
@@ -28,12 +26,15 @@ opt = docopt(__doc__)
 
 def main(chromedriver_path, path_out, years, min_toi):
 
+	# Create the output file path if it doesn't exist.
 	if not os.path.exists(path_out + '/raw'):
 		os.makedirs(path_out + '/raw')
-
+	
+	# Process inputs from terminal.
 	all_years = [int(item) for item in re.split(',', years)]
 	min_toi = int(min_toi)
 	options = Options()
+	# Set the correct download path that matches the terminal output.
 	options.add_experimental_option("prefs", {
   	"download.default_directory": os.getcwd() + '/' + path_out + '/raw',
   	"download.prompt_for_download": False,
@@ -47,7 +48,8 @@ def main(chromedriver_path, path_out, years, min_toi):
 	options.add_argument("--proxy-bypass-list=*")
 
 	driver = webdriver.Chrome(chromedriver_path, options=options)
-
+	
+	# These are all of the file paths for each type of stats we wish to pull in.
 	file_paths = ['on-ice-rel', 'on-ice-non-rel', 'individual', 'powerplay', 'penaltykill']
 	for path in file_paths:
 		

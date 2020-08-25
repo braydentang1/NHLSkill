@@ -1,10 +1,16 @@
 library(shiny)
-library(tools)
-library(shinyWidgets)
+library(tidyverse)
 library(shinydashboard)
 library(shinydashboardPlus)
+library(shinyalert)
+library(sROC)
+library(ggthemes)
+library(plotly)
+library(DT)
+library(patchwork)
 
-# Define UI for application that draws a histogram
+# Uses a html file as a template. Defines other HTML classes that can be
+# called directly in the HTML file to place the R Shiny object where needed on the page.
 ui <- htmlTemplate(
     "www/index.html",
     dist_plot = tabsetPanel(id = "tabset",
