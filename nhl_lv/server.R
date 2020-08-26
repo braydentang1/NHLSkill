@@ -12,16 +12,18 @@ library(patchwork)
 
 server <- function(input, output, session) {
     
-  # If the user clicks on an element that produces #indiv as a query, move
+  # If the user clicks on an element that produces one of these tags as a query, move
   # to the correct tab in the viewer.
     observe({
         query <- getUrlHash(session = getDefaultReactiveDomain())
         print(query)
-        if(query == "#indiv") {
+        if (query == "#indiv") {
             updateTabsetPanel(session, "tabset", selected = "indiv")
-        }
+        } else if (query == "#comparison") {
+          updateTabsetPanel(session, "tabset", selected = "comparison")
+        } 
     })
-    
+
   # Lookup all relevant scores and stats for a particular player once selected. 
   # Mostly a convenience function.
     lookup <- reactive({

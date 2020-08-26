@@ -15,8 +15,12 @@ library(patchwork)
 ui <- htmlTemplate(
     "www/index.html",
     dist_plot = tabsetPanel(id = "tabset",
-      tabPanel(title = "Test"),
-      tabPanel(title = "Individual Players", value = "indiv",
+                            
+                            
+      # Tab Panel: Individual Players
+      tabPanel(
+        title = "Individual Players",
+        value = "indiv",
         sidebarLayout(
     	    sidebarPanel(
     		    selectInput(
@@ -81,6 +85,24 @@ ui <- htmlTemplate(
     	  br()
     	 )
       )
+    ),
+    
+    # Tab Panel #2: Player Comparison Tool
+    tabPanel(
+      title = "Player Comparison",
+      value = "comparison",
+      sidebarLayout(
+        sidebarPanel(
+          selectInput("player1", label = "Player 1:", choices = sort(unique(c(
+            all_forwards_gte[["2014"]]$data$player,
+            all_defenceman_gte[["2014"]]$data$player))),
+            selected = "sidney crosby")
+        ),
+        mainPanel(
+          
+        )
+      )
     )
+    
   )
 )
