@@ -20,9 +20,6 @@ results/models/%: src/R/2_model.R src/R/lavaan/% results/data/gte/% results/data
 	Rscript src/R/2_model.R --path_data results/data/gte \
 	--model_for_path src/R/lavaan/model_for.txt --model_def_path src/R/lavaan/model_def.txt \
 	--path_out results/models/gte -m Y
-	Rscript src/R/2_model.R --path_data results/data/indiv \
-	--model_for_path src/R/lavaan/model_for_indiv.txt --model_def_path src/R/lavaan/model_def_indiv.txt \
-	--path_out results/models/indiv -m N
 	
 # Bootstrap factors
 

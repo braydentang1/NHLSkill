@@ -1,13 +1,16 @@
 level: 1
 	off_contribution =~ off_gar + x_gf + scf + ops
-	def_contribution =~ def_gar + x_ga
+	def_contribution =~ def_gar + x_ga + sca
 
     x_gf ~~ scf
     off_gar ~~ x_gf
+    off_contribution ~~ 0*def_contribution
 	
 level: 2
 	off_contribution =~ off_gar + x_gf + scf + ops
-	def_contribution =~ def_gar + x_ga 
+	def_contribution =~ def_gar + x_ga + sca
 
     x_gf ~~ scf
     scf ~~ x_ga
+    off_contribution ~~ 0*def_contribution
+

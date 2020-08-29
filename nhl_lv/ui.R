@@ -93,16 +93,29 @@ ui <- htmlTemplate(
       value = "comparison",
       sidebarLayout(
         sidebarPanel(
-          selectInput("player1", label = "Player 1:", choices = sort(unique(c(
-            all_forwards_gte[["2014"]]$data$player,
-            all_defenceman_gte[["2014"]]$data$player))),
-            selected = "sidney crosby")
-        ),
-        mainPanel(
+          prettyRadioButtons("for_or_def", label = "Position", choices = c("Forwards", "Defencemen"), selected = "Forwards"),
+          conditionalPanel("input.for_or_def == 'Forwards'",
+            selectInput("player1", label = "Player 1:", choices = sort(unique(c(
+              all_forwards_gte[["2014"]]$data$player,
+              all_defenceman_gte[["2014"]]$data$player))),
+              selected = "sidney crosby"),
+            selectInput("player2", label = "Player 2:", choices = sort(unique(c(
+              all_forwards_gte[["2014"]]$data$player,
+              all_defenceman_gte[["2014"]]$data$player))),
+              selected = "alex ovechkin"),
+          conditionalPanel("input.for_or_def == 'Defencemen'",
+            selectInput("player2", label = "Player 2:", choices = sort(unique(c(
+              all_forwards_gte[["2014"]]$data$player,
+              all_defenceman_gte[["2014"]]$data$player))),
+              selected = "alex ovechkin"
+          )
+        )
+      )
+    ),
+    mainPanel(
           
         )
       )
     )
-    
   )
 )
