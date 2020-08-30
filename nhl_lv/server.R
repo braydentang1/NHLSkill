@@ -11,7 +11,7 @@ library(DT)
 library(patchwork)
 
 server <- function(input, output, session) {
-    
+  ### TAB 1 ###
   # If the user clicks on an element that produces one of these tags as a query, move
   # to the correct tab in the viewer.
     observe({
@@ -481,4 +481,46 @@ server <- function(input, output, session) {
         )
     }, width = "100%")
     
-  }
+    observeEvent(input$active_only_tab2, {
+      
+      if (input$active_only_tab2 == TRUE) {
+      
+        # If a player did not play in 2020, they are inactive. 
+        all_players_2020_only <- all_players %>%
+          filter(year == 2020) 
+        
+        forwards <- all_players_2020_only %>%
+          filter(position == "F") %>%
+          select(player) %>%
+          pull(.)
+        
+        defenceman <- all_players_2020_only %>%
+          filter(position == "D") %>%
+          select(player) %>%
+          pull(.)
+        
+        updateSelectInput(session, "player1_off", choices = forwards, selected = "sidney crosby")
+        updateSelectInput(session, "player2_off", choices = forwards, selected = "alex ovechkin")
+        
+        updateSelectInput(session, "player1_def", choices = defenceman, selected = "victor hedman")
+        updateSelectInput(session, "player2_def", choices = defenceman, selected = "roman josi")
+      
+      } else {
+        
+        original_choices_forwards <- sort(unique(c(
+          all_forwards_gte[["2014"]]$data$player)))
+          
+        original_choices_defenceman <- sort(unique(c(
+          all_defenceman_gte[["2014"]]$data$player)))  
+          
+        updateSelectInput(session, "player1_off", choices = original_choices_forwards, selected = "sidney crosby")
+        updateSelectInput(session, "player2_off", choices = original_choices_forwards, selected = "alex ovechkin")
+        
+        updateSelectInput(session, "player1_def", choices = original_choices_defenceman, selected = "victor hedman")
+        updateSelectInput(session, "player2_def", choices = original_choices_defenceman, selected = "roman josi")
+        
+      }
+            
+    })
+    
+}

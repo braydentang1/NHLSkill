@@ -31,7 +31,7 @@ ui <- htmlTemplate(
     					  all_defenceman_gte[["2014"]]$data$player))),
     					  selected = "sidney crosby"
     					),
-    					prettyCheckbox("active_only", "Active Players Only", value = FALSE, animation = "smooth", fill = FALSE),
+    					prettyCheckbox("active_only", "Active Players Only", value = TRUE, animation = "smooth", fill = FALSE),
     		      tags$div(title = "Scores and distributions estimated using data from this selected year to the most recent year (2020)",
     		               sliderInput("year_since",
     		                "Using Data Since:", sep = "",
@@ -94,22 +94,22 @@ ui <- htmlTemplate(
       sidebarLayout(
         sidebarPanel(
           prettyRadioButtons("for_or_def", label = "Position", choices = c("Forwards", "Defencemen"), selected = "Forwards"),
+          prettyCheckbox("active_only_tab2", "Active Players Only", value = TRUE, animation = "smooth", fill = FALSE),
           conditionalPanel("input.for_or_def == 'Forwards'",
-            selectInput("player1", label = "Player 1:", choices = sort(unique(c(
-              all_forwards_gte[["2014"]]$data$player,
-              all_defenceman_gte[["2014"]]$data$player))),
-              selected = "sidney crosby"),
-            selectInput("player2", label = "Player 2:", choices = sort(unique(c(
-              all_forwards_gte[["2014"]]$data$player,
-              all_defenceman_gte[["2014"]]$data$player))),
-              selected = "alex ovechkin"),
+            selectInput("player1_off", label = "Player 1:", choices = sort(unique(c(
+              all_forwards_gte[["2014"]]$data$player))),
+              selected = "sidney crosby", multiple = FALSE),
+              selectInput("player2_off", label = "Player 2:", choices = sort(unique(c(
+              all_forwards_gte[["2014"]]$data$player))),
+              selected = "alex ovechkin", multiple = FALSE)
+          ),
           conditionalPanel("input.for_or_def == 'Defencemen'",
-            selectInput("player2", label = "Player 2:", choices = sort(unique(c(
-              all_forwards_gte[["2014"]]$data$player,
+            selectInput("player1_def", label = "Player 1:", choices = sort(unique(c(
               all_defenceman_gte[["2014"]]$data$player))),
-              selected = "alex ovechkin"
-          )
-        )
+              selected = "victor hedman", multiple = FALSE),
+              selectInput("player2_def", label = "Player 2:", choices = sort(unique(c(
+              all_defenceman_gte[["2014"]]$data$player))),
+              selected = "roman josi", multiple = FALSE)
       )
     ),
     mainPanel(
