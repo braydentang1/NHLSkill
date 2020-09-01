@@ -126,12 +126,12 @@ ui <- htmlTemplate(
             column(
               width = 12,
               align = "center",
-              tags$div(title = "This is the probability that the difference in offensive scores is less than 0 (favoring player 2)",
+              tags$div(title = "This is the probability that the difference in offensive scores is greater than 0 (favoring player 1)",
                       infoBoxOutput("gte_0_off", width = 12))),
             column(
               width = 12,
               align = "center",
-              tags$div(title = "This is the probability that the difference in defensive scores is less than 0 (favoring player 2)",
+              tags$div(title = "This is the probability that the difference in defensive scores is greater than 0 (favoring player 1)",
                       infoBoxOutput("gte_0_def", width = 12)))
             )
         )

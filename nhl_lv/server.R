@@ -555,8 +555,8 @@ server <- function(input, output, session) {
           transmute(diff = as.numeric(player1_def_contrib - player2_def_contrib)) %>%
           pull(.) 
         
-        prob_lt_0_off <- mean(off_scores <= 0)
-        prob_lt_0_def <- mean(def_scores <= 0)
+        prob_lt_0_off <- mean(off_scores >= 0)
+        prob_lt_0_def <- mean(def_scores >= 0)
         
         list(
           off_scores_diff = off_scores,
@@ -625,8 +625,8 @@ server <- function(input, output, session) {
           transmute(diff = as.numeric(player1_def_contrib - player2_def_contrib)) %>%
           pull(.) 
         
-        prob_lt_0_off <- mean(off_scores <= 0)
-        prob_lt_0_def <- mean(def_scores <= 0)
+        prob_lt_0_off <- mean(off_scores >= 0)
+        prob_lt_0_def <- mean(def_scores >= 0)
         
         list(
           off_scores_diff = off_scores,
@@ -786,7 +786,7 @@ server <- function(input, output, session) {
       display_off_prob <- ifelse(length(lookup_tab2()$off_lt_0) == 0, NA, lookup_tab2()$off_lt_0)
     
       infoBox(
-        "Probability Offensive Difference Less Than 0:",
+        "Probability Offensive Difference Grater Than 0:",
         round(display_off_prob, 2),
         icon = icon("chevron-up", lib = "glyphicon"),
         color = "blue",
@@ -800,7 +800,7 @@ server <- function(input, output, session) {
       display_def_prob <- ifelse(length(lookup_tab2()$def_lt_0) == 0, NA, lookup_tab2()$def_lt_0)
       
       infoBox(
-        "Probability Defensive Difference Less Than 0:",
+        "Probability Defensive Difference Grater Than 0:",
         round(display_def_prob, 2),
         icon = icon("tower", lib = "glyphicon"),
         color = "blue",
