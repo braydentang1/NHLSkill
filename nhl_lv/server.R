@@ -481,6 +481,168 @@ server <- function(input, output, session) {
         )
     }, width = "100%")
     
+    ### TAB 2 ###
+    # Update player selections if the user selects active only
+    
+    lookup_tab2 <- reactive({
+    
+      if (input$for_or_def == "Forwards") {
+        
+        # If the user selects same player 1 and same player 2, output NA.
+        if (input$player1_for == input$player2_for) {
+          
+          list(
+            off_scores_diff = NA,
+            def_scores_diff = NA,
+            actual_off_diff = NA,
+            actual_def_diff = NA,
+            off_lt_0 = NA,
+            def_lt_0 = NA
+          )
+          
+        } else {
+        
+        # Pivot long data to wide to make it easier to compute differences        
+        all_scores_uncertainty <- all_forwards_gte_u[[as.character(input$year_since_tab2)]] %>%
+          filter(player %in% c(input$player1_for, input$player2_for)) %>%
+          pivot_wider(id_cols = seed_number, names_from = player, values_from = c(off_contribution, def_contribution)) 
+        
+        # Find the actual factor scores for player 1 and player 2.
+        idx_p1_orig <- which(all_forwards_gte[[as.character(input$year_since_tab2)]]$factor_scores$player == input$player1_for)
+        idx_p2_orig <- which(all_forwards_gte[[as.character(input$year_since_tab2)]]$factor_scores$player == input$player2_for)
+        
+        # If they don't appear, then set to NA to prevent graphing anything.
+        if (length(idx_p1_orig) == 0 | length(idx_p2_orig) == 0) {
+          
+          actual_diff_off <- NA
+          actual_diff_def <- NA
+          
+        } else {
+          
+          actual_diff_off <- all_defenceman_gte[[as.character(input$year_since_tab2)]]$factor_scores$off_contribution[idx_p1_orig] -
+            all_defenceman_gte[[as.character(input$year_since_tab2)]]$factor_scores$off_contribution[idx_p2_orig]
+          
+          actual_diff_def <- all_defenceman_gte[[as.character(input$year_since_tab2)]]$factor_scores$def_contribution[idx_p1_orig] -
+            all_defenceman_gte[[as.character(input$year_since_tab2)]]$factor_scores$def_contribution[idx_p2_orig]
+          
+        }
+        
+        actual_diff_off <- all_forwards_gte[[as.character(input$year_since_tab2)]]$factor_scores$off_contribution[idx_p1_orig] -
+                           all_forwards_gte[[as.character(input$year_since_tab2)]]$factor_scores$off_contribution[idx_p2_orig]
+        
+        actual_diff_def <- all_forwards_gte[[as.character(input$year_since_tab2)]]$factor_scores$def_contribution[idx_p1_orig] -
+                           all_forwards_gte[[as.character(input$year_since_tab2)]]$factor_scores$def_contribution[idx_p2_orig]
+          
+        
+        # Find what columns correspond to player 1 and player 2, respectively.
+        idx_player1 <- str_detect(string = colnames(all_scores_uncertainty), pattern = input$player1_for)
+        idx_player2 <- str_detect(string = colnames(all_scores_uncertainty), pattern = input$player2_for)
+        
+        # Rename the columns to reference player 1 and player 2.
+        colnames(all_scores_uncertainty)[idx_player1] <- c("player1_off_contrib", "player1_def_contrib")
+        colnames(all_scores_uncertainty)[idx_player2] <- c("player2_off_contrib", "player2_def_contrib")
+        
+        # Compute the distribution of offensive and defensive scores. Output vectors in a list.
+        off_scores <- all_scores_uncertainty %>%
+          select(contains("off_contrib")) %>%
+          drop_na(.) %>%
+          transmute(diff = as.numeric(player1_off_contrib - player2_off_contrib)) %>%
+          pull(.) 
+        
+        def_scores <- all_scores_uncertainty %>%
+          select(contains("def_contrib")) %>%
+          drop_na(.) %>%
+          transmute(diff = as.numeric(player1_def_contrib - player2_def_contrib)) %>%
+          pull(.) 
+        
+        prob_lt_0_off <- mean(off_scores <= 0)
+        prob_lt_0_def <- mean(def_scores <= 0)
+        
+        list(
+          off_scores_diff = off_scores,
+          def_scores_diff = def_scores,
+          actual_off_diff = actual_diff_off,
+          actual_def_diff = actual_diff_def,
+          off_lt_0 = prob_lt_0_off,
+          def_lt_0 = prob_lt_0_def
+        )
+        }
+        
+      } else {
+        
+        # This is exactly the same thing as above, except for defenceman instead of forwards.
+        
+        if (input$player1_def == input$player2_def) {
+          
+          list(
+            off_scores_diff = NA,
+            def_scores_diff = NA,
+            actual_off_diff = NA,
+            actual_def_diff = NA,
+            off_lt_0 = NA,
+            def_lt_0 = NA
+          )
+          
+        } else {
+        
+        all_scores_uncertainty <- all_defenceman_gte_u[[as.character(input$year_since_tab2)]] %>%
+          filter(player %in% c(input$player1_def, input$player2_def)) %>%
+          pivot_wider(id_cols = seed_number, names_from = player, values_from = c(off_contribution, def_contribution)) 
+        
+        idx_p1_orig <- which(all_defenceman_gte[[as.character(input$year_since_tab2)]]$factor_scores$player == input$player1_def)
+        idx_p2_orig <- which(all_defenceman_gte[[as.character(input$year_since_tab2)]]$factor_scores$player == input$player2_def)
+        
+        if (length(idx_p1_orig) == 0 | length(idx_p2_orig) == 0) {
+          
+          actual_diff_off <- NA
+          actual_diff_def <- NA
+        
+        } else {
+          
+          actual_diff_off <- all_defenceman_gte[[as.character(input$year_since_tab2)]]$factor_scores$off_contribution[idx_p1_orig] -
+            all_defenceman_gte[[as.character(input$year_since_tab2)]]$factor_scores$off_contribution[idx_p2_orig]
+          
+          actual_diff_def <- all_defenceman_gte[[as.character(input$year_since_tab2)]]$factor_scores$def_contribution[idx_p1_orig] -
+            all_defenceman_gte[[as.character(input$year_since_tab2)]]$factor_scores$def_contribution[idx_p2_orig]
+        
+        }
+        
+        idx_player1 <- str_detect(string = colnames(all_scores_uncertainty), pattern = input$player1_def)
+        idx_player2 <- str_detect(string = colnames(all_scores_uncertainty), pattern = input$player2_def)
+        
+        colnames(all_scores_uncertainty)[idx_player1] <- c("player1_off_contrib", "player1_def_contrib")
+        colnames(all_scores_uncertainty)[idx_player2] <- c("player2_off_contrib", "player2_def_contrib")
+        
+        off_scores <- all_scores_uncertainty %>%
+          select(contains("off_contrib")) %>%
+          drop_na(.) %>%
+          transmute(diff = as.numeric(player1_off_contrib - player2_off_contrib)) %>%
+          pull(.) 
+        
+        def_scores <- all_scores_uncertainty %>%
+          select(contains("def_contrib")) %>%
+          drop_na(.) %>%
+          transmute(diff = as.numeric(player1_def_contrib - player2_def_contrib)) %>%
+          pull(.) 
+        
+        prob_lt_0_off <- mean(off_scores <= 0)
+        prob_lt_0_def <- mean(def_scores <= 0)
+        
+        list(
+          off_scores_diff = off_scores,
+          def_scores_diff = def_scores,
+          actual_off_diff = actual_diff_off,
+          actual_def_diff = actual_diff_def,
+          off_lt_0 = prob_lt_0_off,
+          def_lt_0 = prob_lt_0_def
+        )
+        
+        }
+      }
+      
+    })
+    
+    
     observeEvent(input$active_only_tab2, {
       
       if (input$active_only_tab2 == TRUE) {
@@ -489,38 +651,162 @@ server <- function(input, output, session) {
         all_players_2020_only <- all_players %>%
           filter(year == 2020) 
         
+        # Find all forwards who have >600 min TOI in 2020
         forwards <- all_players_2020_only %>%
           filter(position == "F") %>%
           select(player) %>%
           pull(.)
         
+        # find all defenceman who have >600 min TOI in 2020
         defenceman <- all_players_2020_only %>%
           filter(position == "D") %>%
           select(player) %>%
           pull(.)
         
-        updateSelectInput(session, "player1_off", choices = forwards, selected = "sidney crosby")
-        updateSelectInput(session, "player2_off", choices = forwards, selected = "alex ovechkin")
+        # Update forwards
+        updateSelectInput(session, "player1_for", choices = forwards, selected = "sidney crosby")
+        updateSelectInput(session, "player2_for", choices = forwards, selected = "alex ovechkin")
         
+        # Update defenceman
         updateSelectInput(session, "player1_def", choices = defenceman, selected = "victor hedman")
         updateSelectInput(session, "player2_def", choices = defenceman, selected = "roman josi")
       
       } else {
         
+        # Do nothing if the user has selected to show all active and inactive players
         original_choices_forwards <- sort(unique(c(
           all_forwards_gte[["2014"]]$data$player)))
           
         original_choices_defenceman <- sort(unique(c(
           all_defenceman_gte[["2014"]]$data$player)))  
-          
-        updateSelectInput(session, "player1_off", choices = original_choices_forwards, selected = "sidney crosby")
-        updateSelectInput(session, "player2_off", choices = original_choices_forwards, selected = "alex ovechkin")
         
+        # Forwards updated
+        updateSelectInput(session, "player1_for", choices = original_choices_forwards, selected = "sidney crosby")
+        updateSelectInput(session, "player2_for", choices = original_choices_forwards, selected = "alex ovechkin")
+        
+        # Defenceman updated
         updateSelectInput(session, "player1_def", choices = original_choices_defenceman, selected = "victor hedman")
         updateSelectInput(session, "player2_def", choices = original_choices_defenceman, selected = "roman josi")
         
       }
             
+    })
+    
+    output$diff_distplot <- renderPlotly({
+      
+      graphing <- tibble(
+        `Offensive Score Difference` = lookup_tab2()$off_scores_diff,
+        `Defensive Score Difference` = lookup_tab2()$def_scores_diff
+        )
+      
+      off_diff_density <- ggplot(data = graphing, mapping = aes(x = `Offensive Score Difference`)) +
+        geom_density(fill = "#ffffff") +
+        geom_vline(
+          data = tibble(
+            `Observed Offensive Score Difference` = c(round(lookup_tab2()$actual_off_diff, 2))
+          ),
+          aes(xintercept = `Observed Offensive Score Difference`),
+          color = "red"
+        ) + 
+        labs(y = "Density") +
+        theme(
+          plot.background = element_rect(colour = "#e3e3e3", fill = "#39cacc"),
+          plot.title = element_text(colour = "#555555", size = 20),
+          axis.title = element_text(colour = "#555555", face = "bold"),
+          plot.subtitle = element_text(colour = "#555555")
+        )
+      
+      def_diff_density <- ggplot(data = graphing, mapping = aes(x = `Defensive Score Difference`)) +
+        geom_density(fill = "#555555") +
+        geom_vline(
+          data = tibble(
+            `Observed Defensive Score Difference` = c(round(lookup_tab2()$actual_def_diff, 2))
+          ),
+          aes(xintercept = `Observed Defensive Score Difference`),
+          color = "red"
+        ) +
+        labs(y = "Density") +
+        theme(
+          plot.background = element_rect(colour = "#e3e3e3", fill = "#39cacc"),
+          plot.title = element_text(colour = "#555555", size = 20),
+          axis.title = element_text(colour = "#555555", face = "bold"),
+          plot.subtitle = element_text(colour = "#555555")
+        )
+      
+      # Combine the two plots so that they sit beside each other as one complete plot.
+      # Have to add in the title as annotations since the overall package is strange.
+      subplot(ggplotly(off_diff_density), ggplotly(def_diff_density), shareX = TRUE, shareY = TRUE) %>%
+        add_annotations(
+          yref = "paper", 
+          xref = "paper", 
+          y = 1.05, 
+          x = 0, 
+          text = "Estimated Difference in Offensive and Defensive Scores", 
+          showarrow = F,
+          font = list(size = 20, color = "#555555")
+        ) %>%
+        add_annotations(
+          yref = "paper",
+          xref = "paper",
+          y = 1,
+          x = 0,
+          text = "Actuals in Red",
+          showarrow = F,
+          font = list(size = 12, color = "#555555")
+        ) %>%
+        layout(
+          plot_bgcolor = "#39cacc",
+          paper_bgcolor = "#39cacc",
+          title = list(x = 0.2)) %>%
+        hide_legend()
+      
+    })
+    
+    # For the title display that changes based on user selection
+    
+    output$title_tab2 <- renderUI({
+      
+      if (input$for_or_def == "Forwards") {
+      
+      titlePanel(
+        title = h2(paste(input$player1_for, "vs.", input$player2_for)) 
+        )
+      
+      } else {
+        
+        titlePanel(
+          title = h2(paste(input$player1_def, "vs.", input$player2_def))
+        )
+        
+      }
+    })
+    
+    output$gte_0_off <- renderInfoBox({
+      
+      display_off_prob <- ifelse(length(lookup_tab2()$off_lt_0) == 0, NA, lookup_tab2()$off_lt_0)
+    
+      infoBox(
+        "Probability Offensive Difference Less Than 0:",
+        round(display_off_prob, 2),
+        icon = icon("chevron-up", lib = "glyphicon"),
+        color = "blue",
+        fill = TRUE
+      )
+      
+    })
+    
+    output$gte_0_def <- renderInfoBox({
+      
+      display_def_prob <- ifelse(length(lookup_tab2()$def_lt_0) == 0, NA, lookup_tab2()$def_lt_0)
+      
+      infoBox(
+        "Probability Defensive Difference Less Than 0:",
+        round(display_def_prob, 2),
+        icon = icon("tower", lib = "glyphicon"),
+        color = "blue",
+        fill = TRUE
+      )
+      
     })
     
 }

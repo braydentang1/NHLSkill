@@ -116,12 +116,23 @@ ui <- htmlTemplate(
     mainPanel(
           uiOutput("title_tab2"),
           fluidRow(
+            column(
+            width = 12,
             plotlyOutput("diff_distplot", height = "475px")
-            ),
+            )
+          ),
           br(),
           fluidRow(
-            tags$div(title = "Probability Less Than 0",
-                   infoBoxOutput("gte_0", width = 12))
+            column(
+              width = 12,
+              align = "center",
+              tags$div(title = "This is the probability that the difference in offensive scores is less than 0 (favoring player 2)",
+                      infoBoxOutput("gte_0_off", width = 12))),
+            column(
+              width = 12,
+              align = "center",
+              tags$div(title = "This is the probability that the difference in defensive scores is less than 0 (favoring player 2)",
+                      infoBoxOutput("gte_0_def", width = 12)))
             )
         )
       )
