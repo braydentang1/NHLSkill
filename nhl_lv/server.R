@@ -786,7 +786,7 @@ server <- function(input, output, session) {
       display_off_prob <- ifelse(length(lookup_tab2()$off_lt_0) == 0, NA, lookup_tab2()$off_lt_0)
     
       infoBox(
-        "Probability Offensive Difference Grater Than 0:",
+        "Probability Offensive Score of Player 1 > Offensive Score of Player 2",
         round(display_off_prob, 2),
         icon = icon("chevron-up", lib = "glyphicon"),
         color = "blue",
@@ -800,7 +800,7 @@ server <- function(input, output, session) {
       display_def_prob <- ifelse(length(lookup_tab2()$def_lt_0) == 0, NA, lookup_tab2()$def_lt_0)
       
       infoBox(
-        "Probability Defensive Difference Grater Than 0:",
+        "Probability Defensive Score of Player 1 > Defensive Score of Player 2:",
         round(display_def_prob, 2),
         icon = icon("tower", lib = "glyphicon"),
         color = "blue",
