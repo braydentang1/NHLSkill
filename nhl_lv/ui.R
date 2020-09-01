@@ -95,11 +95,12 @@ ui <- htmlTemplate(
         sidebarPanel(
           prettyRadioButtons("for_or_def", label = "Position", choices = c("Forwards", "Defencemen"), selected = "Forwards"),
           prettyCheckbox("active_only_tab2", "Active Players Only", value = TRUE, animation = "smooth", fill = FALSE),
+          sliderInput("year_since_tab2", label = "Using Data Since", min = 2014, max = 2019, step = 1, sep = "", value = 2014, round = TRUE),
           conditionalPanel("input.for_or_def == 'Forwards'",
-            selectInput("player1_off", label = "Player 1:", choices = sort(unique(c(
+            selectInput("player1_for", label = "Player 1:", choices = sort(unique(c(
               all_forwards_gte[["2014"]]$data$player))),
               selected = "sidney crosby", multiple = FALSE),
-              selectInput("player2_off", label = "Player 2:", choices = sort(unique(c(
+              selectInput("player2_for", label = "Player 2:", choices = sort(unique(c(
               all_forwards_gte[["2014"]]$data$player))),
               selected = "alex ovechkin", multiple = FALSE)
           ),
@@ -113,7 +114,15 @@ ui <- htmlTemplate(
       )
     ),
     mainPanel(
-          
+          uiOutput("title_tab2"),
+          fluidRow(
+            plotlyOutput("diff_distplot", height = "475px")
+            ),
+          br(),
+          fluidRow(
+            tags$div(title = "Probability Less Than 0",
+                   infoBoxOutput("gte_0", width = 12))
+            )
         )
       )
     )
