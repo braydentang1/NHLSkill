@@ -39,7 +39,8 @@ ui <- htmlTemplate(
     		                max = 2019, value = 2014)),
     					tags$div(title = "For controlling the intervals (red bars) in the distribution plots", 
     					         sliderInput("uncertain", "Uncertainty Level:", min = 80, max = 99, step = 1, value = 90)),
-    					actionButton("faq", "README", icon = icon("info"))
+    					tags$div(title = "For more information and guidelines",
+    					         actionButton("faq", "README", icon = icon("info")))
     	       ),
     	mainPanel(
     	  fluidRow(
@@ -111,7 +112,9 @@ ui <- htmlTemplate(
               selectInput("player2_def", label = "Player 2:", choices = sort(unique(c(
               all_defenceman_gte[["2014"]]$data$player))),
               selected = "roman josi", multiple = FALSE)
-      )
+      ),
+      tags$div(title = "For more information and guidelines",
+               actionButton("faq_tab2", "README", icon = icon("info")))
     ),
     mainPanel(
           fluidRow(
@@ -124,7 +127,7 @@ ui <- htmlTemplate(
             column(
             uiOutput("profile1_tab2"),
             uiOutput("profile2_tab2"),
-            width = 12),
+            width = 12)
           ),
           fluidRow(
             column(

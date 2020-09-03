@@ -925,6 +925,21 @@ server <- function(input, output, session) {
       
     })
     
+    # For the README button. This controls the output of what is actually displayed
+    # to the user.
+    observeEvent(input$faq_tab2, {
+      show_alert(
+        title = "FAQ",
+        text = p(HTML("• All differences are from the perspective of Player 1, i.e. Player 1 Off./Def. Score - Player 2 Off./Def. Score <br> <br>
+        • All percentiles, scores, and distributions are in relation to other players of the same position (i.e. comparing a forward against a defenceman is meaningless). <br> <br>
+        • The model is hierarchical (random intercept). Therefore, players who entered the league after the year that is selected still have their scores influenced by players who came before, due to the global pooling effect. <br> <br>
+        • Players who have less than 600 minutes of time on ice in 2020 are not included because they weren't modelled. <br> <br>
+        • I purposely abbreviate CI as depending on your perspective these intervals can either be confidence or credible intervals. <br> <br>
+        • For the distribution plot, pressing autoscale in the plot toolbar (upper right corner of the plot) and adjusting the y-axis placement might be useful."), style = "text-align: justify; font-size: 16px"),
+        type = "info", width = "1000px"
+      )
+    })
+    
     ### TAB 3: Leaderboard ###
     
     # The profile/user box. Needs to be done in the server file since it is 
@@ -939,9 +954,9 @@ server <- function(input, output, session) {
         team <- all_players$team[which(all_players$player == input$player1_for)]
         full_team_name <- team_lookup$team[which(team_lookup$accronym == team)]
         
-        # Output.
+        # Output. sub just replaces first occurrence so we can get away with this.
         widgetUserBox(
-          title = input$player1_for,
+          title = HTML(sub(" ", "<br>", input$player1_for)),
           type = 2,
           subtitle = paste(full_team_name, sep = ""),
           src = paste0("images/", "players/", name_id, ".jpg"), 
@@ -958,9 +973,9 @@ server <- function(input, output, session) {
         team <- all_players$team[which(all_players$player == input$player1_def)]
         full_team_name <- team_lookup$team[which(team_lookup$accronym == team)]
         
-        # Output.
+        # Output. sub just replaces first occurrence so we can get away with this.
         widgetUserBox(
-          title = input$player1_def,
+          title = HTML(sub(" ", "<br>", input$player1_def)),
           type = 2,
           subtitle = paste(full_team_name, sep = ""),
           src = paste0("images/", "players/", name_id, ".jpg"), 
@@ -986,9 +1001,9 @@ server <- function(input, output, session) {
         team <- all_players$team[which(all_players$player == input$player2_for)]
         full_team_name <- team_lookup$team[which(team_lookup$accronym == team)]
         
-        # Output.
+        # Output. sub just replaces first occurrence so we can get away with this.
         widgetUserBox(
-          title = input$player2_for,
+          title = HTML(sub(" ", "<br>", input$player2_for)),
           type = 2,
           subtitle = paste(full_team_name, sep = ""),
           src = paste0("images/", "players/", name_id, ".jpg"), 
@@ -1005,9 +1020,9 @@ server <- function(input, output, session) {
         team <- all_players$team[which(all_players$player == input$player2_def)]
         full_team_name <- team_lookup$team[which(team_lookup$accronym == team)]
         
-        # Output.
+        # Output. sub just replaces first occurrence so we can get away with this.
         widgetUserBox(
-          title = input$player2_def,
+          title = HTML(sub(" ", "<br>", input$player2_def)),
           type = 2,
           subtitle = paste(full_team_name, sep = ""),
           src = paste0("images/", "players/", name_id, ".jpg"), 
