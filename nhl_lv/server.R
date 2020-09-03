@@ -492,8 +492,18 @@ server <- function(input, output, session) {
     
       if (input$for_or_def == "Forwards") {
         
+        # Pivot long data to wide to make it easier to compute differences        
+        all_scores_uncertainty <- all_forwards_gte_u[[as.character(input$year_since_tab2)]] %>%
+          filter(player %in% c(input$player1_for, input$player2_for)) %>%
+          pivot_wider(id_cols = seed_number, names_from = player, values_from = c(off_contribution, def_contribution)) 
+        
+        # Find the actual factor scores for player 1 and player 2.
+        idx_p1_orig <- which(all_forwards_gte[[as.character(input$year_since_tab2)]]$factor_scores$player == input$player1_for)
+        idx_p2_orig <- which(all_forwards_gte[[as.character(input$year_since_tab2)]]$factor_scores$player == input$player2_for)
+        
         # If the user selects same player 1 and same player 2, output NA.
-        if (input$player1_for == input$player2_for) {
+        # If they don't appear, then set to NA to prevent graphing anything.
+        if (input$player1_for == input$player2_for | length(idx_p1_orig) == 0 | length(idx_p1_orig) == 0) {
           
           list(
             off_scores_diff = NA,
@@ -506,39 +516,13 @@ server <- function(input, output, session) {
           )
           
         } else {
-        
-        # Pivot long data to wide to make it easier to compute differences        
-        all_scores_uncertainty <- all_forwards_gte_u[[as.character(input$year_since_tab2)]] %>%
-          filter(player %in% c(input$player1_for, input$player2_for)) %>%
-          pivot_wider(id_cols = seed_number, names_from = player, values_from = c(off_contribution, def_contribution)) 
-        
-        # Find the actual factor scores for player 1 and player 2.
-        idx_p1_orig <- which(all_forwards_gte[[as.character(input$year_since_tab2)]]$factor_scores$player == input$player1_for)
-        idx_p2_orig <- which(all_forwards_gte[[as.character(input$year_since_tab2)]]$factor_scores$player == input$player2_for)
-        
-        # If they don't appear, then set to NA to prevent graphing anything.
-        if (length(idx_p1_orig) == 0 | length(idx_p2_orig) == 0) {
-          
-          actual_diff_off <- NA
-          actual_diff_def <- NA
-          
-        } else {
-          
-          actual_diff_off <- all_defenceman_gte[[as.character(input$year_since_tab2)]]$factor_scores$off_contribution[idx_p1_orig] -
-            all_defenceman_gte[[as.character(input$year_since_tab2)]]$factor_scores$off_contribution[idx_p2_orig]
-          
-          actual_diff_def <- all_defenceman_gte[[as.character(input$year_since_tab2)]]$factor_scores$def_contribution[idx_p1_orig] -
-            all_defenceman_gte[[as.character(input$year_since_tab2)]]$factor_scores$def_contribution[idx_p2_orig]
-          
-        }
-        
+    
         actual_diff_off <- all_forwards_gte[[as.character(input$year_since_tab2)]]$factor_scores$off_contribution[idx_p1_orig] -
-                           all_forwards_gte[[as.character(input$year_since_tab2)]]$factor_scores$off_contribution[idx_p2_orig]
-        
-        actual_diff_def <- all_forwards_gte[[as.character(input$year_since_tab2)]]$factor_scores$def_contribution[idx_p1_orig] -
-                           all_forwards_gte[[as.character(input$year_since_tab2)]]$factor_scores$def_contribution[idx_p2_orig]
+            all_forwards_gte[[as.character(input$year_since_tab2)]]$factor_scores$off_contribution[idx_p2_orig]
           
-        
+        actual_diff_def <- all_forwards_gte[[as.character(input$year_since_tab2)]]$factor_scores$def_contribution[idx_p1_orig] -
+            all_forwards_gte[[as.character(input$year_since_tab2)]]$factor_scores$def_contribution[idx_p2_orig]
+          
         # Find what columns correspond to player 1 and player 2, respectively.
         idx_player1 <- str_detect(string = colnames(all_scores_uncertainty), pattern = input$player1_for)
         idx_player2 <- str_detect(string = colnames(all_scores_uncertainty), pattern = input$player2_for)
@@ -593,13 +577,19 @@ server <- function(input, output, session) {
             Value = c(lower_off, upper_off, lower_def, upper_def)
           ) %>% mutate_at(list(function(x) round(x, 2)), .vars = "Value")
         )
-        }
-        
+        } 
       } else {
         
         # This is exactly the same thing as above, except for defenceman instead of forwards.
         
-        if (input$player1_def == input$player2_def) {
+        all_scores_uncertainty <- all_defenceman_gte_u[[as.character(input$year_since_tab2)]] %>%
+          filter(player %in% c(input$player1_def, input$player2_def)) %>%
+          pivot_wider(id_cols = seed_number, names_from = player, values_from = c(off_contribution, def_contribution)) 
+        
+        idx_p1_orig <- which(all_defenceman_gte[[as.character(input$year_since_tab2)]]$factor_scores$player == input$player1_def)
+        idx_p2_orig <- which(all_defenceman_gte[[as.character(input$year_since_tab2)]]$factor_scores$player == input$player2_def)
+        
+        if (input$player1_def == input$player2_def | length(idx_p1_orig) == 0 | length(idx_p2_orig) == 0) {
           
           list(
             off_scores_diff = NA,
@@ -613,27 +603,11 @@ server <- function(input, output, session) {
           
         } else {
         
-        all_scores_uncertainty <- all_defenceman_gte_u[[as.character(input$year_since_tab2)]] %>%
-          filter(player %in% c(input$player1_def, input$player2_def)) %>%
-          pivot_wider(id_cols = seed_number, names_from = player, values_from = c(off_contribution, def_contribution)) 
-        
-        idx_p1_orig <- which(all_defenceman_gte[[as.character(input$year_since_tab2)]]$factor_scores$player == input$player1_def)
-        idx_p2_orig <- which(all_defenceman_gte[[as.character(input$year_since_tab2)]]$factor_scores$player == input$player2_def)
-        
-        if (length(idx_p1_orig) == 0 | length(idx_p2_orig) == 0) {
-          
-          actual_diff_off <- NA
-          actual_diff_def <- NA
-        
-        } else {
-          
-          actual_diff_off <- all_defenceman_gte[[as.character(input$year_since_tab2)]]$factor_scores$off_contribution[idx_p1_orig] -
+        actual_diff_off <- all_defenceman_gte[[as.character(input$year_since_tab2)]]$factor_scores$off_contribution[idx_p1_orig] -
             all_defenceman_gte[[as.character(input$year_since_tab2)]]$factor_scores$off_contribution[idx_p2_orig]
           
-          actual_diff_def <- all_defenceman_gte[[as.character(input$year_since_tab2)]]$factor_scores$def_contribution[idx_p1_orig] -
+        actual_diff_def <- all_defenceman_gte[[as.character(input$year_since_tab2)]]$factor_scores$def_contribution[idx_p1_orig] -
             all_defenceman_gte[[as.character(input$year_since_tab2)]]$factor_scores$def_contribution[idx_p2_orig]
-        
-        }
         
         idx_player1 <- str_detect(string = colnames(all_scores_uncertainty), pattern = input$player1_def)
         idx_player2 <- str_detect(string = colnames(all_scores_uncertainty), pattern = input$player2_def)
@@ -681,10 +655,8 @@ server <- function(input, output, session) {
             Value = c(lower_off, upper_off, lower_def, upper_def)
           ) %>% mutate_at(.funs = list(function(x) round(x, 2)), .vars = "Value")
         )
-        
-        }
+        } 
       }
-      
     })
     
     # Updates the player list if active only is selected.
