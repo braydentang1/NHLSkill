@@ -30,19 +30,6 @@ all_defenceman_gte_u <- map(years, function(x) {
 }) %>%
 	set_names(as.character(years))
 
-# Get a list of all of the players that can be viewed for the dropdown menu.
-# 2014 is a strict superset of all other years.
-# Therefore, we only need to look at the oldest data (2014).
-all_players <- all_forwards_gte[["2014"]]$factor_scores %>% 
-	bind_cols(position = rep("F", nrow(all_forwards_gte[["2014"]]$factor_scores))) %>%
-	bind_rows(all_defenceman_gte[["2014"]]$factor_scores) %>%
-	mutate(position = ifelse(is.na(position), "D", position)) %>%
-	left_join(., all_forwards_gte[["2014"]]$data %>% 
-							bind_rows(., all_defenceman_gte[["2014"]]$data) %>%
-							group_by(player) %>%
-							filter(year == max(year)) %>%
-							select(player, team, year), by = "player") 
-
 # For presentation in the user profile/player box. This is to show the actual
 # full team name instead of some accronym.
 team_lookup <- tibble(
@@ -80,6 +67,19 @@ team_lookup <- tibble(
 		"Nashville Predators",
 		"Calgary Flames")
 ) 
+
+# Get a list of all of the players that can be viewed for the dropdown menu.
+# 2014 is a strict superset of all other years.
+# Therefore, we only need to look at the oldest data (2014).
+all_players <- all_forwards_gte[["2014"]]$factor_scores %>% 
+	bind_cols(position = rep("F", nrow(all_forwards_gte[["2014"]]$factor_scores))) %>%
+	bind_rows(all_defenceman_gte[["2014"]]$factor_scores) %>%
+	mutate(position = ifelse(is.na(position), "D", position)) %>%
+	left_join(., all_forwards_gte[["2014"]]$data %>% 
+							bind_rows(., all_defenceman_gte[["2014"]]$data) %>%
+							group_by(player) %>%
+							filter(year == max(year)) %>%
+							select(player, team, year), by = "player") 
 
 # Need the last year for the sliderInput.
 last_year_gte <- names(all_forwards_gte)[length(all_forwards_gte)] 

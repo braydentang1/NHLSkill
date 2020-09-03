@@ -39,7 +39,7 @@ ui <- htmlTemplate(
     		                max = 2019, value = 2014)),
     					tags$div(title = "For controlling the intervals (red bars) in the distribution plots", 
     					         sliderInput("uncertain", "Uncertainty Level:", min = 80, max = 99, step = 1, value = 90)),
-    					actionButton("faq", "README", icon = icon("info")),
+    					actionButton("faq", "README", icon = icon("info"))
     	       ),
     	mainPanel(
     	  fluidRow(
@@ -93,9 +93,9 @@ ui <- htmlTemplate(
       value = "comparison",
       sidebarLayout(
         sidebarPanel(
-          prettyRadioButtons("for_or_def", label = "Position", choices = c("Forwards", "Defencemen"), selected = "Forwards"),
-          prettyCheckbox("active_only_tab2", "Active Players Only", value = TRUE, animation = "smooth", fill = FALSE),
-          sliderInput("year_since_tab2", label = "Using Data Since", min = 2014, max = 2019, step = 1, sep = "", value = 2014, round = TRUE),
+          prettyRadioButtons("for_or_def", label = "Position:", choices = c("Forwards", "Defencemen"), selected = "Forwards"),
+          prettyCheckbox("active_only_tab2", "Active Players Only:", value = TRUE, animation = "smooth", fill = FALSE),
+          sliderInput("year_since_tab2", label = "Using Data Since:", min = 2014, max = 2019, step = 1, sep = "", value = 2014, round = TRUE),
           conditionalPanel("input.for_or_def == 'Forwards'",
             selectInput("player1_for", label = "Player 1:", choices = sort(unique(c(
               all_forwards_gte[["2014"]]$data$player))),
@@ -114,7 +114,18 @@ ui <- htmlTemplate(
       )
     ),
     mainPanel(
-          uiOutput("title_tab2"),
+          fluidRow(
+            column(
+            uiOutput("title_tab2"),
+            width = 12
+            )
+          ),
+          fluidRow(
+            column(
+            uiOutput("profile1_tab2"),
+            uiOutput("profile2_tab2"),
+            width = 12),
+          ),
           fluidRow(
             column(
             width = 12,
@@ -134,6 +145,43 @@ ui <- htmlTemplate(
               tags$div(title = "This is the probability that the difference in defensive scores is greater than 0 (favoring player 1)",
                       infoBoxOutput("gte_0_def", width = 12)))
             )
+        )
+      )
+    ),
+    
+    # Tab Panel #3: Leaderboard
+    
+    tabPanel(
+      title = "Leaderboard",
+      value = "leaderboard", 
+      sidebarLayout(
+        sidebarPanel(
+          sliderInput(
+            "year_since_lb",
+            label = "Using Data Since:",
+            min = 2014,
+            max = 2019,
+            step = 1,
+            sep = "",
+            value = 2014,
+            round = TRUE
+          ),
+          prettyRadioButtons(
+            "for_or_def_lb",
+            label = "Position:",
+            choices = c("Forwards", "Defencemen"),
+            selected = "Forwards"
+            ),
+          prettyCheckbox(
+            "active_only_lb",
+            "Active Players Only",
+            value = TRUE,
+            animation = "smooth",
+            fill = FALSE
+          )
+        ),
+        mainPanel(
+          DT::dataTableOutput("leaderboard")
         )
       )
     )
