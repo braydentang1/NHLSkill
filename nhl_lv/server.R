@@ -497,7 +497,8 @@ server <- function(input, output, session) {
             actual_off_diff = NA,
             actual_def_diff = NA,
             off_lt_0 = NA,
-            def_lt_0 = NA
+            def_lt_0 = NA,
+            quantiles = NA
           )
           
         } else {
@@ -555,8 +556,15 @@ server <- function(input, output, session) {
           transmute(diff = as.numeric(player1_def_contrib - player2_def_contrib)) %>%
           pull(.) 
         
+        desired_confidence <- 0.90
         prob_lt_0_off <- mean(off_scores >= 0)
         prob_lt_0_def <- mean(def_scores >= 0)
+        
+        lower_off <- quantile(off_scores, (1 - desired_confidence) / 2)
+        upper_off <- quantile(off_scores, (1 + desired_confidence) / 2)
+        
+        lower_def <- quantile(def_scores,  (1 - desired_confidence) / 2)
+        upper_def <- quantile(def_scores, (1 + desired_confidence) / 2)
         
         list(
           off_scores_diff = off_scores,
@@ -564,7 +572,16 @@ server <- function(input, output, session) {
           actual_off_diff = actual_diff_off,
           actual_def_diff = actual_diff_def,
           off_lt_0 = prob_lt_0_off,
-          def_lt_0 = prob_lt_0_def
+          def_lt_0 = prob_lt_0_def,
+          quantiles = tibble(
+            Bound = c(
+              "Lower 90% CI Offensive",
+              "Upper 90% CI Offensive",
+              "Lower 90% CI Defensive",
+              "Lower 90% CI Defensive"
+            ),
+            Value = c(lower_off, upper_off, lower_def, upper_def)
+          ) %>% mutate_at(list(function(x) round(x, 2)), .vars = "Value")
         )
         }
         
@@ -580,7 +597,8 @@ server <- function(input, output, session) {
             actual_off_diff = NA,
             actual_def_diff = NA,
             off_lt_0 = NA,
-            def_lt_0 = NA
+            def_lt_0 = NA,
+            quantiles = NA
           )
           
         } else {
@@ -625,8 +643,16 @@ server <- function(input, output, session) {
           transmute(diff = as.numeric(player1_def_contrib - player2_def_contrib)) %>%
           pull(.) 
         
+        
+        desired_confidence <- 0.90
         prob_lt_0_off <- mean(off_scores >= 0)
         prob_lt_0_def <- mean(def_scores >= 0)
+        
+        lower_off <- quantile(off_scores, (1 - desired_confidence) / 2)
+        upper_off <- quantile(off_scores, (1 + desired_confidence) / 2)
+        
+        lower_def <- quantile(def_scores,  (1 - desired_confidence) / 2)
+        upper_def <- quantile(def_scores, (1 + desired_confidence) / 2)
         
         list(
           off_scores_diff = off_scores,
@@ -634,7 +660,16 @@ server <- function(input, output, session) {
           actual_off_diff = actual_diff_off,
           actual_def_diff = actual_diff_def,
           off_lt_0 = prob_lt_0_off,
-          def_lt_0 = prob_lt_0_def
+          def_lt_0 = prob_lt_0_def,
+          quantiles = tibble(
+            Bound = c(
+              "Lower 90% CI Offensive",
+              "Upper 90% CI Offensive",
+              "Lower 90% CI Defensive",
+              "Lower 90% CI Defensive"
+              ),
+            Value = c(lower_off, upper_off, lower_def, upper_def)
+          ) %>% mutate_at(.funs = list(function(x) round(x, 2)), .vars = "Value")
         )
         
         }
@@ -699,14 +734,17 @@ server <- function(input, output, session) {
         `Defensive Score Difference` = lookup_tab2()$def_scores_diff
         )
       
+      quantiles <- lookup_tab2()$quantiles 
+      
       off_diff_density <- ggplot(data = graphing, mapping = aes(x = `Offensive Score Difference`)) +
         geom_density(fill = "#ffffff") +
+        geom_vline(data = quantiles[1:2, ], aes(xintercept = Value, colour = Bound), colour = "red") +
         geom_vline(
           data = tibble(
             `Observed Offensive Score Difference` = c(round(lookup_tab2()$actual_off_diff, 2))
           ),
           aes(xintercept = `Observed Offensive Score Difference`),
-          color = "red"
+          color = "black"
         ) + 
         labs(y = "Density") +
         theme(
@@ -718,12 +756,13 @@ server <- function(input, output, session) {
       
       def_diff_density <- ggplot(data = graphing, mapping = aes(x = `Defensive Score Difference`)) +
         geom_density(fill = "#555555") +
+        geom_vline(data = quantiles[3:4, ], aes(xintercept = Value, colour = Bound), colour = "red") +
         geom_vline(
           data = tibble(
             `Observed Defensive Score Difference` = c(round(lookup_tab2()$actual_def_diff, 2))
           ),
           aes(xintercept = `Observed Defensive Score Difference`),
-          color = "red"
+          color = "black"
         ) +
         labs(y = "Density") +
         theme(
@@ -750,7 +789,7 @@ server <- function(input, output, session) {
           xref = "paper",
           y = 1,
           x = 0,
-          text = "Actuals in Red",
+          text = "Actual Observed Difference in Black, 90% CI in Red",
           showarrow = F,
           font = list(size = 12, color = "#555555")
         ) %>%
@@ -785,13 +824,27 @@ server <- function(input, output, session) {
       
       display_off_prob <- ifelse(length(lookup_tab2()$off_lt_0) == 0, NA, lookup_tab2()$off_lt_0)
     
+      if (input$for_or_def == "Forwards") {
+      
       infoBox(
-        "Probability Offensive Score of Player 1 > Offensive Score of Player 2",
+        paste0("Prob. Off. Score of ", input$player1_for, " >", " Off. Score of ", input$player2_for, ":"),
         round(display_off_prob, 2),
         icon = icon("chevron-up", lib = "glyphicon"),
         color = "blue",
         fill = TRUE
       )
+      
+      } else {
+        
+        infoBox(
+          paste0("Prob. Off. Score of ", input$player1_def, " >", " Off. Score of ", input$player2_def, ":"),
+          round(display_off_prob, 2),
+          icon = icon("chevron-up", lib = "glyphicon"),
+          color = "blue",
+          fill = TRUE
+        )
+        
+      }
       
     })
     
@@ -799,13 +852,27 @@ server <- function(input, output, session) {
       
       display_def_prob <- ifelse(length(lookup_tab2()$def_lt_0) == 0, NA, lookup_tab2()$def_lt_0)
       
+      if (input$for_or_def == "Forwards") {
+      
       infoBox(
-        "Probability Defensive Score of Player 1 > Defensive Score of Player 2:",
+        paste0("Prob. Def. Score of ", input$player1_for, " >", " Def. Score of ", input$player2_for, ":"),
         round(display_def_prob, 2),
         icon = icon("tower", lib = "glyphicon"),
         color = "blue",
         fill = TRUE
       )
+        
+      } else {
+        
+        infoBox(
+          paste0("Prob. Def. Score of ", input$player1_def, " >", " Def. Score of ", input$player2_def, ":"),
+          round(display_def_prob, 2),
+          icon = icon("tower", lib = "glyphicon"),
+          color = "blue",
+          fill = TRUE
+        )
+        
+      }
       
     })
     
