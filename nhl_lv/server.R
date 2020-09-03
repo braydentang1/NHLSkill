@@ -556,10 +556,16 @@ server <- function(input, output, session) {
           transmute(diff = as.numeric(player1_def_contrib - player2_def_contrib)) %>%
           pull(.) 
         
+        # Fix the confidence level to 90% - this is intentional.
         desired_confidence <- 0.90
+        
+        # Get the empirical probability that observed offensive/defensive scores are greater than 0
+        # which corresponds to the probability that Player 1 Off/Def Score > Player 2 Off/Def Score.
         prob_lt_0_off <- mean(off_scores >= 0)
         prob_lt_0_def <- mean(def_scores >= 0)
         
+        # Get the upper and lower bounds on the 90% CI's for both offensive and defensive 
+        # scores.
         lower_off <- quantile(off_scores, (1 - desired_confidence) / 2)
         upper_off <- quantile(off_scores, (1 + desired_confidence) / 2)
         
@@ -677,7 +683,7 @@ server <- function(input, output, session) {
       
     })
     
-    
+    # Updates the player list if active only is selected.
     observeEvent(input$active_only_tab2, {
       
       if (input$active_only_tab2 == TRUE) {
@@ -736,9 +742,31 @@ server <- function(input, output, session) {
       
       quantiles <- lookup_tab2()$quantiles 
       
+      # If the quantiles lookup results in NA, this means that the user
+      # has selected the same player input for player 1 and player 2. So we 
+      # create dummy frames with NA values so that errors aren't thrown.
+      if (is.na(quantiles)) {
+        
+        off_quantiles <- tibble(
+          Bound = c(NA, NA),
+          Value = c(NA, NA)
+        )
+        def_quantiles <- tibble(
+          Bound = c(NA, NA),
+          Value = c(NA, NA)
+        )
+        
+      } else {
+        
+        off_quantiles <- quantiles[1:2, ]
+        def_quantiles <- quantiles[3:4, ]
+  
+      }
+      
+      # Offensive Score Difference Density
       off_diff_density <- ggplot(data = graphing, mapping = aes(x = `Offensive Score Difference`)) +
         geom_density(fill = "#ffffff") +
-        geom_vline(data = quantiles[1:2, ], aes(xintercept = Value, colour = Bound), colour = "red") +
+        geom_vline(data = off_quantiles, aes(xintercept = Value, colour = Bound), colour = "red") +
         geom_vline(
           data = tibble(
             `Observed Offensive Score Difference` = c(round(lookup_tab2()$actual_off_diff, 2))
@@ -754,9 +782,10 @@ server <- function(input, output, session) {
           plot.subtitle = element_text(colour = "#555555")
         )
       
+      # Defensive Score Difference Density
       def_diff_density <- ggplot(data = graphing, mapping = aes(x = `Defensive Score Difference`)) +
         geom_density(fill = "#555555") +
-        geom_vline(data = quantiles[3:4, ], aes(xintercept = Value, colour = Bound), colour = "red") +
+        geom_vline(data = def_quantiles, aes(xintercept = Value, colour = Bound), colour = "red") +
         geom_vline(
           data = tibble(
             `Observed Defensive Score Difference` = c(round(lookup_tab2()$actual_def_diff, 2))
@@ -820,6 +849,7 @@ server <- function(input, output, session) {
       }
     })
     
+    # Info Box for the the probability Player 1 Offensive Score > Player 2 Offensive Score
     output$gte_0_off <- renderInfoBox({
       
       display_off_prob <- ifelse(length(lookup_tab2()$off_lt_0) == 0, NA, lookup_tab2()$off_lt_0)
@@ -848,6 +878,8 @@ server <- function(input, output, session) {
       
     })
     
+    
+    # Info Box for the the probability Player 1 Defensive Score > Player 2 Defensive Score
     output$gte_0_def <- renderInfoBox({
       
       display_def_prob <- ifelse(length(lookup_tab2()$def_lt_0) == 0, NA, lookup_tab2()$def_lt_0)

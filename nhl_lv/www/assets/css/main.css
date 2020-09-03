@@ -2883,3 +2883,7 @@ body.is-menu-visible #menu {
 .nav-tabs>li>a {
 	background-color: #ffffff;
 }
+
+#title_tab2 h2 {
+	font-size: 25px;
+}
