@@ -512,16 +512,23 @@ server <- function(input, output, session) {
             actual_def_diff = NA,
             off_lt_0 = NA,
             def_lt_0 = NA,
-            quantiles = NA
+            quantiles = NA,
+            actuals = NA
           )
           
         } else {
     
-        actual_diff_off <- all_forwards_gte[[as.character(input$year_since_tab2)]]$factor_scores$off_contribution[idx_p1_orig] -
-            all_forwards_gte[[as.character(input$year_since_tab2)]]$factor_scores$off_contribution[idx_p2_orig]
+        # The offence scores for each individual player. 
+        p1_offence_score <- all_forwards_gte[[as.character(input$year_since_tab2)]]$factor_scores$off_contribution[idx_p1_orig]
+        p2_offence_score <- all_forwards_gte[[as.character(input$year_since_tab2)]]$factor_scores$off_contribution[idx_p2_orig]
           
-        actual_diff_def <- all_forwards_gte[[as.character(input$year_since_tab2)]]$factor_scores$def_contribution[idx_p1_orig] -
-            all_forwards_gte[[as.character(input$year_since_tab2)]]$factor_scores$def_contribution[idx_p2_orig]
+        actual_diff_off <- p1_offence_score - p2_offence_score
+        
+        # The defence scores for each individual player.
+        p1_defence_score <- all_forwards_gte[[as.character(input$year_since_tab2)]]$factor_scores$def_contribution[idx_p1_orig]
+        p2_defence_score <- all_forwards_gte[[as.character(input$year_since_tab2)]]$factor_scores$def_contribution[idx_p2_orig]
+        
+        actual_diff_def <- p1_defence_score - p2_defence_score
           
         # Find what columns correspond to player 1 and player 2, respectively.
         idx_player1 <- str_detect(string = colnames(all_scores_uncertainty), pattern = input$player1_for)
@@ -575,7 +582,15 @@ server <- function(input, output, session) {
               "Lower 90% CI Defensive"
             ),
             Value = c(lower_off, upper_off, lower_def, upper_def)
-          ) %>% mutate_at(list(function(x) round(x, 2)), .vars = "Value")
+          ) %>% mutate_at(list(function(x) round(x, 2)), .vars = "Value"),
+          actuals = tibble(
+            score = c(
+              "p1_off", "p2_off", "p1_def", "p2_def"
+            ),
+            value = c(
+              p1_offence_score, p2_offence_score, p1_defence_score, p2_defence_score
+            )
+          )
         )
         } 
       } else {
@@ -598,16 +613,21 @@ server <- function(input, output, session) {
             actual_def_diff = NA,
             off_lt_0 = NA,
             def_lt_0 = NA,
-            quantiles = NA
+            quantiles = NA,
+            actuals = NA
           )
           
         } else {
         
-        actual_diff_off <- all_defenceman_gte[[as.character(input$year_since_tab2)]]$factor_scores$off_contribution[idx_p1_orig] -
-            all_defenceman_gte[[as.character(input$year_since_tab2)]]$factor_scores$off_contribution[idx_p2_orig]
+        p1_offence_score <- all_defenceman_gte[[as.character(input$year_since_tab2)]]$factor_scores$off_contribution[idx_p1_orig]
+        p2_offence_score <- all_defenceman_gte[[as.character(input$year_since_tab2)]]$factor_scores$off_contribution[idx_p2_orig]
+        
+        actual_diff_off <- p1_offence_score - p2_offence_score
+        
+        p1_defence_score <- all_defenceman_gte[[as.character(input$year_since_tab2)]]$factor_scores$def_contribution[idx_p1_orig]
+        p2_defence_score <- all_defenceman_gte[[as.character(input$year_since_tab2)]]$factor_scores$def_contribution[idx_p2_orig]
           
-        actual_diff_def <- all_defenceman_gte[[as.character(input$year_since_tab2)]]$factor_scores$def_contribution[idx_p1_orig] -
-            all_defenceman_gte[[as.character(input$year_since_tab2)]]$factor_scores$def_contribution[idx_p2_orig]
+        actual_diff_def <- p1_defence_score - p2_defence_score
         
         idx_player1 <- str_detect(string = colnames(all_scores_uncertainty), pattern = input$player1_def)
         idx_player2 <- str_detect(string = colnames(all_scores_uncertainty), pattern = input$player2_def)
@@ -653,7 +673,15 @@ server <- function(input, output, session) {
               "Lower 90% CI Defensive"
               ),
             Value = c(lower_off, upper_off, lower_def, upper_def)
-          ) %>% mutate_at(.funs = list(function(x) round(x, 2)), .vars = "Value")
+          ) %>% mutate_at(.funs = list(function(x) round(x, 2)), .vars = "Value"),
+          actuals = tibble(
+            score = c(
+              "p1_off", "p2_off", "p1_def", "p2_def"
+            ),
+            value = c(
+              p1_offence_score, p2_offence_score, p1_defence_score, p2_defence_score
+            )
+          )
         )
         } 
       }
@@ -707,19 +735,6 @@ server <- function(input, output, session) {
         
       }
             
-    })
-    
-    # Get the team for the players
-    tab2_profile_data <- reactive({
-      
-      if (input$for_or_def == "Forwards") {
-        
-        relevant_players <- all_players %>%
-          filter(player %in% c(input$player1_for, input$player2_for)) 
-        
-        which(team)
-        
-      }
     })
     
     output$diff_distplot <- renderPlotly({
@@ -897,6 +912,124 @@ server <- function(input, output, session) {
       
     })
     
+    # The profile/user box. Needs to be done in the server file since it is 
+    # generated dynamically based on user input first.
+    output$profile1_tab2 <- renderUI({
+      
+      # Get the actual offensive and defensive scores relevant to the player 
+      actual_scores <- lookup_tab2()$actuals %>%
+        filter(score %in% c("p1_off", "p1_def"))
+      
+      if (input$for_or_def == "Forwards") {
+        
+        # Get the file name of the player as generated by get-player-images.py
+        full_name <- str_split(input$player1_for, pattern = " ")[[1]]
+        name_id <- paste(full_name[1:2], collapse = "_")
+        
+        # Get the team name of the player
+        team <- all_players$team[which(all_players$player == input$player1_for)]
+        full_team_name <- team_lookup$team[which(team_lookup$accronym == team)]
+        
+        # Output. sub just replaces first occurrence so we can get away with this.
+        widgetUserBox(
+          title = HTML(sub(" ", "<br>", input$player1_for)),
+          type = 2,
+          subtitle = paste(full_team_name, sep = ""),
+          p(HTML(paste0("Offensive Score: ", round(actual_scores$value[1], 2), "<br>",
+                        "Defensive Score: ", round(actual_scores$value[2], 2)))),
+          src = paste0("images/", "players/", name_id, ".jpg"), 
+          boxToolSize = "lg",
+          width = 6,
+          collapsible = FALSE
+        )
+        
+      } else {
+        
+        # Get the file name of the player as generated by get-player-images.py
+        full_name <- str_split(input$player1_def, pattern = " ")[[1]]
+        name_id <- paste(full_name[1:2], collapse = "_")
+        
+        # Get the team name of the player
+        team <- all_players$team[which(all_players$player == input$player1_def)]
+        full_team_name <- team_lookup$team[which(team_lookup$accronym == team)]
+        
+        # Output. sub just replaces first occurrence so we can get away with this.
+        widgetUserBox(
+          title = HTML(sub(" ", "<br>", input$player1_def)),
+          type = 2,
+          subtitle = paste(full_team_name, sep = ""),
+          p(HTML(paste0("Offensive Score: ", round(actual_scores$value[1], 2), "<br>",
+                        "Defensive Score: ", round(actual_scores$value[2], 2)))),
+          src = paste0("images/", "players/", name_id, ".jpg"), 
+          boxToolSize = "lg",
+          width = 6,
+          collapsible = FALSE
+        )
+        
+        
+      }
+      
+    })
+    
+    # The profile/user box. Needs to be done in the server file since it is 
+    # generated dynamically based on user input first.
+    output$profile2_tab2 <- renderUI({
+      
+      # Get the actual offensive and defensive scores relevant to the player 
+      actual_scores <- lookup_tab2()$actuals %>%
+        filter(score %in% c("p2_off", "p2_def"))
+      
+      if (input$for_or_def == "Forwards") {
+        
+        # Get the file name of the player as generated by get-player-images.py
+        full_name <- str_split(input$player2_for, pattern = " ")[[1]]
+        name_id <- paste(full_name[1:2], collapse = "_")
+        
+        # Get the team name of the player
+        team <- all_players$team[which(all_players$player == input$player2_for)]
+        full_team_name <- team_lookup$team[which(team_lookup$accronym == team)]
+        
+        # Output. sub just replaces first occurrence so we can get away with this.
+        widgetUserBox(
+          title = HTML(sub(" ", "<br>", input$player2_for)),
+          type = 2,
+          subtitle = paste(full_team_name, sep = ""),
+          p(HTML(paste0("Offensive Score: ", round(actual_scores$value[1], 2), "<br>",
+                        "Defensive Score: ", round(actual_scores$value[2], 2)))),
+          src = paste0("images/", "players/", name_id, ".jpg"), 
+          boxToolSize = "lg",
+          width = 6,
+          collapsible = FALSE
+        )
+        
+      } else {
+        
+        # Get the file name of the player as generated by get-player-images.py
+        full_name <- str_split(input$player2_def, pattern = " ")[[1]]
+        name_id <- paste(full_name[1:2], collapse = "_")
+        
+        # Get the team name of the player
+        team <- all_players$team[which(all_players$player == input$player2_def)]
+        full_team_name <- team_lookup$team[which(team_lookup$accronym == team)]
+        
+        # Output. sub just replaces first occurrence so we can get away with this.
+        widgetUserBox(
+          title = HTML(sub(" ", "<br>", input$player2_def)),
+          type = 2,
+          subtitle = paste(full_team_name, sep = ""),
+          p(HTML(paste0("Offensive Score: ", round(actual_scores$value[1], 2), "<br>",
+                        "Defensive Score: ", round(actual_scores$value[2], 2)))),
+          src = paste0("images/", "players/", name_id, ".jpg"), 
+          boxToolSize = "lg",
+          width = 6,
+          collapsible = FALSE
+        )
+        
+        
+      }
+      
+    })
+    
     # For the README button. This controls the output of what is actually displayed
     # to the user.
     observeEvent(input$faq_tab2, {
@@ -913,99 +1046,5 @@ server <- function(input, output, session) {
     })
     
     ### TAB 3: Leaderboard ###
-    
-    # The profile/user box. Needs to be done in the server file since it is 
-    # generated dynamically based on user input first.
-    output$profile1_tab2 <- renderUI({
-      
-      if (input$for_or_def == "Forwards") {
-        
-        # Get the file name of the player as generated by get-player-images.py
-        full_name <- str_split(input$player1_for, pattern = " ")[[1]]
-        name_id <- paste(full_name[1:2], collapse = "_")
-        team <- all_players$team[which(all_players$player == input$player1_for)]
-        full_team_name <- team_lookup$team[which(team_lookup$accronym == team)]
-        
-        # Output. sub just replaces first occurrence so we can get away with this.
-        widgetUserBox(
-          title = HTML(sub(" ", "<br>", input$player1_for)),
-          type = 2,
-          subtitle = paste(full_team_name, sep = ""),
-          src = paste0("images/", "players/", name_id, ".jpg"), 
-          boxToolSize = "lg",
-          width = 6,
-          collapsible = FALSE
-        )
-      
-      } else {
-        
-        # Get the file name of the player as generated by get-player-images.py
-        full_name <- str_split(input$player1_def, pattern = " ")[[1]]
-        name_id <- paste(full_name[1:2], collapse = "_")
-        team <- all_players$team[which(all_players$player == input$player1_def)]
-        full_team_name <- team_lookup$team[which(team_lookup$accronym == team)]
-        
-        # Output. sub just replaces first occurrence so we can get away with this.
-        widgetUserBox(
-          title = HTML(sub(" ", "<br>", input$player1_def)),
-          type = 2,
-          subtitle = paste(full_team_name, sep = ""),
-          src = paste0("images/", "players/", name_id, ".jpg"), 
-          boxToolSize = "lg",
-          width = 6,
-          collapsible = FALSE
-        )
-        
-        
-      }
-      
-    })
-    
-    # The profile/user box. Needs to be done in the server file since it is 
-    # generated dynamically based on user input first.
-    output$profile2_tab2 <- renderUI({
-      
-      if (input$for_or_def == "Forwards") {
-        
-        # Get the file name of the player as generated by get-player-images.py
-        full_name <- str_split(input$player2_for, pattern = " ")[[1]]
-        name_id <- paste(full_name[1:2], collapse = "_")
-        team <- all_players$team[which(all_players$player == input$player2_for)]
-        full_team_name <- team_lookup$team[which(team_lookup$accronym == team)]
-        
-        # Output. sub just replaces first occurrence so we can get away with this.
-        widgetUserBox(
-          title = HTML(sub(" ", "<br>", input$player2_for)),
-          type = 2,
-          subtitle = paste(full_team_name, sep = ""),
-          src = paste0("images/", "players/", name_id, ".jpg"), 
-          boxToolSize = "lg",
-          width = 6,
-          collapsible = FALSE
-        )
-      
-      } else {
-        
-        # Get the file name of the player as generated by get-player-images.py
-        full_name <- str_split(input$player2_def, pattern = " ")[[1]]
-        name_id <- paste(full_name[1:2], collapse = "_")
-        team <- all_players$team[which(all_players$player == input$player2_def)]
-        full_team_name <- team_lookup$team[which(team_lookup$accronym == team)]
-        
-        # Output. sub just replaces first occurrence so we can get away with this.
-        widgetUserBox(
-          title = HTML(sub(" ", "<br>", input$player2_def)),
-          type = 2,
-          subtitle = paste(full_team_name, sep = ""),
-          src = paste0("images/", "players/", name_id, ".jpg"), 
-          boxToolSize = "lg",
-          width = 6,
-          collapsible = FALSE
-        )
-        
-        
-      }
-      
-    })
     
 }
