@@ -620,7 +620,7 @@ server <- function(input, output, session) {
           
         } else {
         
-        p1_offence_score <- all_defenceman_gte[[a,s.character(input$year_since_tab2)]]$factor_scores$off_contribution[idx_p1_orig]
+        p1_offence_score <- all_defenceman_gte[[as.character(input$year_since_tab2)]]$factor_scores$off_contribution[idx_p1_orig]
         p2_offence_score <- all_defenceman_gte[[as.character(input$year_since_tab2)]]$factor_scores$off_contribution[idx_p2_orig]
         
         actual_diff_off <- p1_offence_score - p2_offence_score
