@@ -389,6 +389,7 @@ server <- function(input, output, session) {
         • Players who have less than 600 minutes of time on ice in 2020 are considered inactive/retired. <br> <br>
         • I purposely abbreviate CI as depending on your perspective these intervals can either be confidence or credible intervals. <br> <br>
         • All statistics in the table are centered to have zero mean and unit variance per each year and position. <br> <br>
+        • Generally, using data from 2014 results in better estimates due to more data, but players who have seen dramatic changes in their play may have their values distorted. <br> <br>
         • For the distribution plot, pressing autoscale in the plot toolbar (upper right corner of the plot) and adjusting the y-axis placement might be useful."), style = "text-align: justify; font-size: 16px"),
         type = "info", width = "1000px"
       )
@@ -1040,6 +1041,7 @@ server <- function(input, output, session) {
         • The model is hierarchical (random intercept). Therefore, players who entered the league after the year that is selected still have their scores influenced by players who came before, due to the global pooling effect. <br> <br>
         • Players who have less than 600 minutes of time on ice in 2020 are not included because they weren't modelled. <br> <br>
         • I purposely abbreviate CI as depending on your perspective these intervals can either be confidence or credible intervals. <br> <br>
+                • Generally, using data from 2014 results in better estimates due to more data, but players who have seen dramatic changes in their play may have their values distorted. <br> <br>
         • For the distribution plot, pressing autoscale in the plot toolbar (upper right corner of the plot) and adjusting the y-axis placement might be useful."), style = "text-align: justify; font-size: 16px"),
         type = "info", width = "1000px"
       )
