@@ -184,7 +184,8 @@ ui <- htmlTemplate(
           )
         ),
         mainPanel(
-          DT::dataTableOutput("leaderboard")
+          DT::dataTableOutput("leaderboard"),
+          br()
         )
       )
     )
