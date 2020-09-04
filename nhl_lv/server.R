@@ -4,6 +4,7 @@ library(shinydashboard)
 library(shinydashboardPlus)
 library(shinyalert)
 library(shinyWidgets)
+library(shinyjs)
 library(sROC)
 library(ggthemes)
 library(plotly)
@@ -24,6 +25,17 @@ server <- function(input, output, session) {
         } else if (query == "#leaderboard") {
           updateTabsetPanel(session, "tabset", selected = "leaderboard")
         }
+    })
+  
+  # For updates to the URL if the user actually clicks on a tab.
+    observe({
+      if (req(input$tabset) == "indiv") {
+        updateQueryString(queryString = "#indiv", mode = "push")
+      } else if (req(input$tabset) == "comparison") {
+        updateQueryString(queryString = "#comparison", mode = "push")
+      } else if (req(input$tabset) == "leaderboard") {
+        updateQueryString(queryString = "#leaderboard", mode = "push")
+      }
     })
 
   # Lookup all relevant scores and stats for a particular player once selected. 
