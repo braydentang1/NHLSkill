@@ -1049,4 +1049,51 @@ server <- function(input, output, session) {
     
     ### TAB 3: Leaderboard ###
     
+    output$leaderboard <- renderDT({
+      
+      if (input$for_or_def_lb == "Forwards") {
+        scores <- all_forwards_gte[[as.character(input$year_since_lb)]]$factor_scores
+      } else {
+        scores <- all_defenceman_gte[[as.character(input$year_since_lb)]]$factor_scores
+      }
+      
+      if (input$active_only_lb == TRUE) {
+        
+        all_players_2020_only <- all_players %>%
+          filter(year == 2020) %>%
+          select(player) %>%
+          pull()
+        
+        scores %>%
+          mutate(
+            off_contribution = round(off_contribution, 2),
+            def_contribution = round(def_contribution, 2)
+            ) %>%
+          filter(player %in% all_players_2020_only) %>%
+          rename(
+            `Offensive Score` = off_contribution,
+            `Defensive Score` = def_contribution,
+            Player = player
+          ) %>%
+          arrange(by = -`Offensive Score`) 
+        
+      } else {
+        
+        scores %>%
+          mutate(
+            off_contribution = round(off_contribution, 2),
+            def_contribution = round(def_contribution, 2)
+          ) %>%
+          rename(
+            `Offensive Score` = off_contribution,
+            `Defensive Score` = def_contribution,
+            Player = player
+          ) %>%
+          arrange(by = -`Offensive Score`) 
+        
+        
+      }
+
+    }, rownames = FALSE)
+    
 }
