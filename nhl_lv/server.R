@@ -9,7 +9,6 @@ library(sROC)
 library(ggthemes)
 library(plotly)
 library(DT)
-library(patchwork)
 
 server <- function(input, output, session) {
   ### TAB 1 ###

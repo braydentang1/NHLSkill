@@ -9,7 +9,6 @@ library(sROC)
 library(ggthemes)
 library(plotly)
 library(DT)
-library(patchwork)
 
 # Uses a html file as a template. Defines other HTML classes that can be
 # called directly in the HTML file to place the R Shiny object where needed on the page.
