@@ -9,7 +9,6 @@ library(sROC)
 library(ggthemes)
 library(plotly)
 library(DT)
-library(patchwork)
 
 # Read in precomputed forward and defenceman hierarchical models.
 all_forwards_gte <- read_rds("results/models/gte/forwards.rds")

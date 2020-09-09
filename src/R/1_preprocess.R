@@ -107,7 +107,22 @@ main <- function(year_seasons_gte, year_seasons_indiv, raw_data_path,
 	# Read Evolving Hockey GAR data
 	all_GAR <- read_data_eh(raw_data_path, "gar")	%>%
 		select(player, year, team, position, toi_all, war, off_gar, def_gar) %>%
-		filter(year != 2013)
+		filter(year != 2013) 
+	
+	# Team lookup of the last team the player played on. Need this to rejoin the columns
+	# back since they get dropped in the group_by statement.
+	last_team_lookup <- all_GAR %>%
+		group_by(player) %>%
+		filter(year == max(year)) %>%
+		select(player, team)
+	
+	# Collapse players who were traded by summing their totals over the teams they played on in each year.
+	all_GAR <- all_GAR %>%
+		group_by(player, year, position) %>%
+		summarize_at(.vars = c("toi_all", "war", "off_gar", "def_gar"), .funs = list(function(x) sum(x))) %>%
+		ungroup() %>%
+		left_join(., last_team_lookup, by = "player") %>%
+		relocate(team, .after = 2)
 	
 	# Read Evolving Hockey RAPM data
 	all_rapm <- read_data_eh(raw_data_path, "rapm") %>%
