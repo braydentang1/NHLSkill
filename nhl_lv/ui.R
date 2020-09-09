@@ -1,3 +1,4 @@
+library(lavaan)
 library(shiny)
 library(tidyverse)
 library(shinydashboard)

@@ -34,3 +34,10 @@ results/bootstrap/%: src/R/3_bootstrap.R results/models/% src/R/lavaan/%
 	--path_out results/bootstrap/gte/defenceman \
 	-n 6000 \
 	-m Y
+	
+# Remove unneeded objects from .rds files to save on memory
+
+results/cleaned_models/%: src/R/4_remove_items.R results/models/gte/%
+	Rscript src/R/4_remove_items.R --model_path_for results/models/gte/forwards.rds \
+	--model_path_def results/models/gte/defenceman.rds \
+	--path_out results/models/cleaned_models
