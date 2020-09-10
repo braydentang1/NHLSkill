@@ -11,6 +11,13 @@ library(ggthemes)
 library(plotly)
 library(DT)
 
+
+load_data <- function() {
+	Sys.sleep(45)
+	hide("loading_page")
+	show("main_content")
+}
+
 # Read in precomputed forward and defenceman hierarchical models.
 all_forwards_gte <- read_rds("results/models/gte/forwards.rds")
 all_defenceman_gte <- read_rds("results/models/gte/defenceman.rds")
