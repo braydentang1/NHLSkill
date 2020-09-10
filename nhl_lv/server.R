@@ -13,9 +13,6 @@ library(DT)
 
 server <- function(input, output, session) {
   
-  # For the loading page. This is needed because shinyapps.io runs a slow server
-  # and takes forever to load the banner mp4.
-  load_data()
   ### TAB 1 ###
   # If the user clicks on an element that produces one of these tags as a query, move
   # to the correct tab in the viewer.
@@ -23,7 +20,7 @@ server <- function(input, output, session) {
         query <- getUrlHash(session = getDefaultReactiveDomain())
         print(query)
         if (query == "#indiv") {
-            updateTabsetPanel(session, "tabset", selected = "indiv")
+          updateTabsetPanel(session, "tabset", selected = "indiv")
         } else if (query == "#comparison") {
           updateTabsetPanel(session, "tabset", selected = "comparison")
         } else if (query == "#leaderboard") {
