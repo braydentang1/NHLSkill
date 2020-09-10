@@ -68,13 +68,13 @@ server <- function(input, output, session) {
           uncertainty <- all_forwards_gte_u[[year]]
           
           # In each .rds object, there is the data set that the scores were fit on.
-          # The 2014 data set is a strict superset of all other years due to the grouping/
-          # hierarchichal modelling approach I took. Therefore, only need 2014 data.
-          relevant_data_off <- all_forwards_gte[["2014"]]$data %>%
+          # The 2015 data set is a strict superset of all other years due to the grouping/
+          # hierarchichal modelling approach I took. Therefore, only need 2015 data.
+          relevant_data_off <- all_forwards_gte[["2015"]]$data %>%
             filter(player == input$player, year >= input$year_since) %>%
             select(year, ops, off_gar, x_gf, scf)
           
-          relevant_data_def <- all_forwards_gte[["2014"]]$data %>%
+          relevant_data_def <- all_forwards_gte[["2015"]]$data %>%
             filter(player == input$player, year >= input$year_since) %>%
             select(year, dps, def_gar, x_ga, sca)
           
@@ -91,13 +91,13 @@ server <- function(input, output, session) {
           uncertainty <- all_defenceman_gte_u[[year]]
           
           # In each .rds object, there is the data set that the scores were fit on.
-          # The 2014 data set is a strict superset of all other years due to the grouping/
-          # hierarchichal modelling approach I took. Therefore, only need 2014 data.
-          relevant_data_off <- all_defenceman_gte[["2014"]]$data %>%
+          # The 2015 data set is a strict superset of all other years due to the grouping/
+          # hierarchichal modelling approach I took. Therefore, only need 2015 data.
+          relevant_data_off <- all_defenceman_gte[["2015"]]$data %>%
             filter(player == input$player, year >= input$year_since) %>%
             select(year, ops, off_gar, x_gf, scf)
           
-          relevant_data_def <- all_defenceman_gte[["2014"]]$data %>%
+          relevant_data_def <- all_defenceman_gte[["2015"]]$data %>%
             filter(player == input$player, year >= input$year_since) %>%
             select(year, dps, def_gar, x_ga, sca)
           
@@ -253,7 +253,7 @@ server <- function(input, output, session) {
       }) %>%
         bind_rows() %>%
         bind_cols(
-          year = seq(2014, 2014 + nrow(.) - 1, 1),
+          year = seq(2015, 2015 + nrow(.) - 1, 1),
           .) %>%
         rename(
           Year = year,
@@ -401,7 +401,7 @@ server <- function(input, output, session) {
         • Players who have less than 600 minutes of time on ice in 2020 are considered inactive/retired. <br> <br>
         • I purposely abbreviate CI as depending on your perspective these intervals can either be confidence or credible intervals. <br> <br>
         • All statistics in the table are centered to have zero mean and unit variance per each year and position. <br> <br>
-        • Generally, using data from 2014 results in better estimates due to more data, but players who have seen dramatic changes in their play may have their values distorted. <br> <br>
+        • Generally, using data from 2015 results in better estimates due to more data, but players who have seen dramatic changes in their play may have their values distorted. <br> <br>
         • For the distribution plot, pressing autoscale in the plot toolbar (upper right corner of the plot) and adjusting the y-axis placement might be useful."), style = "text-align: justify; font-size: 16px"),
         type = "info", width = "1000px"
       )
@@ -431,8 +431,8 @@ server <- function(input, output, session) {
           session,
           inputId = "player",
           choices = sort(unique(c(
-            all_forwards_gte[["2014"]]$data$player,
-            all_defenceman_gte[["2014"]]$data$player))),
+            all_forwards_gte[["2015"]]$data$player,
+            all_defenceman_gte[["2015"]]$data$player))),
           selected = "sidney crosby"
         )
       }
@@ -733,10 +733,10 @@ server <- function(input, output, session) {
         
         # Do nothing if the user has selected to show all active and inactive players
         original_choices_forwards <- sort(unique(c(
-          all_forwards_gte[["2014"]]$data$player)))
+          all_forwards_gte[["2015"]]$data$player)))
           
         original_choices_defenceman <- sort(unique(c(
-          all_defenceman_gte[["2014"]]$data$player)))  
+          all_defenceman_gte[["2015"]]$data$player)))  
         
         # Forwards updated
         updateSelectInput(session, "player1_for", choices = original_choices_forwards, selected = "sidney crosby")
@@ -1053,7 +1053,7 @@ server <- function(input, output, session) {
         • The model is hierarchical (random intercept). Therefore, players who entered the league after the year that is selected still have their scores influenced by players who came before, due to the global pooling effect. <br> <br>
         • Players who have less than 600 minutes of time on ice in 2020 are not included because they weren't modelled. <br> <br>
         • I purposely abbreviate CI as depending on your perspective these intervals can either be confidence or credible intervals. <br> <br>
-                • Generally, using data from 2014 results in better estimates due to more data, but players who have seen dramatic changes in their play may have their values distorted. <br> <br>
+                • Generally, using data from 2015 results in better estimates due to more data, but players who have seen dramatic changes in their play may have their values distorted. <br> <br>
         • For the distribution plot, pressing autoscale in the plot toolbar (upper right corner of the plot) and adjusting the y-axis placement might be useful."), style = "text-align: justify; font-size: 16px"),
         type = "info", width = "1000px"
       )

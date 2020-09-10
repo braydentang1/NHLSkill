@@ -40,7 +40,7 @@ main <- function(model_path_for, model_path_def, path_out) {
 		defenceman[[year_tmp]]$aic <- NULL
 		
 		# We need the 2014 year for the web application!
-		if (year_tmp != "2014") {
+		if (year_tmp != "2015") {
 			forwards[[year_tmp]]$data <- NULL 
 			defenceman[[year_tmp]]$data <- NULL
 		} 
@@ -48,8 +48,8 @@ main <- function(model_path_for, model_path_def, path_out) {
 	}
 	
 	# Output the files.
-	saveRDS(forwards, paste0(path_out, "/forwards.rds"))
-	saveRDS(defenceman, paste0(path_out, "/defenceman.rds"))
+	saveRDS(forwards[!names(forwards) %in% c("2014")], paste0(path_out, "/forwards.rds"))
+	saveRDS(defenceman[!names(defenceman) %in% c("2014")], paste0(path_out, "/defenceman.rds"))
 
 }
 

@@ -1,3 +1,4 @@
+library(lavaan)
 library(shiny)
 library(tidyverse)
 library(shinydashboard)
@@ -15,9 +16,9 @@ all_forwards_gte <- read_rds("results/models/gte/forwards.rds")
 all_defenceman_gte <- read_rds("results/models/gte/defenceman.rds")
 
 # Define the years of the data that the models were fit on. Note: these
-# are "greater than" cutoffs. So, 2014 means "using data > 2014", 2019 means 
+# are "greater than" cutoffs. So, 2015 means "using data > 2015", 2019 means 
 # "using data > 2019 = 2019, 2020", and so on.
-years <- seq(2014, 2019, 1)
+years <- seq(2015, 2019, 1)
 
 # Iterate to read in the .rds files for the uncertainty measurements.
 all_forwards_gte_u <- map(years, function(x) {
@@ -31,14 +32,14 @@ all_defenceman_gte_u <- map(years, function(x) {
 	set_names(as.character(years))
 
 # Get a list of all of the players that can be viewed for the dropdown menu.
-# 2014 is a strict superset of all other years.
-# Therefore, we only need to look at the oldest data (2014).
-all_players <- all_forwards_gte[["2014"]]$factor_scores %>% 
-	bind_cols(position = rep("F", nrow(all_forwards_gte[["2014"]]$factor_scores))) %>%
-	bind_rows(all_defenceman_gte[["2014"]]$factor_scores) %>%
+# 2015 is a strict superset of all other years.
+# Therefore, we only need to look at the oldest data (2015).
+all_players <- all_forwards_gte[["2015"]]$factor_scores %>% 
+	bind_cols(position = rep("F", nrow(all_forwards_gte[["2015"]]$factor_scores))) %>%
+	bind_rows(all_defenceman_gte[["2015"]]$factor_scores) %>%
 	mutate(position = ifelse(is.na(position), "D", position)) %>%
-	left_join(., all_forwards_gte[["2014"]]$data %>% 
-							bind_rows(., all_defenceman_gte[["2014"]]$data) %>%
+	left_join(., all_forwards_gte[["2015"]]$data %>% 
+							bind_rows(., all_defenceman_gte[["2015"]]$data) %>%
 							group_by(player) %>%
 							filter(year == max(year)) %>%
 							select(player, team, year), by = "player") 
