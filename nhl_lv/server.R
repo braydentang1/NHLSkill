@@ -467,7 +467,7 @@ server <- function(input, output, session) {
           columns = c("OPS", "Off. GAR", "XGF", "SCF"),
           backgroundColor = styleInterval(brks, clrs),
           fontWeight = "bold",
-          color = styleInterval(cuts = 0, values = c("red", "#555555"))
+          color = styleInterval(cuts = 0, values = c("red", "#007E0D"))
         )
     }, width = "100%")
     
@@ -495,7 +495,7 @@ server <- function(input, output, session) {
           columns = c("DPS", "Def. GAR", "XGA", "SCA"),
           backgroundColor = styleInterval(brks, clrs),
           fontWeight = "bold",
-          color = styleInterval(cuts = 0, values = c("red", "#555555"))
+          color = styleInterval(cuts = 0, values = c("red", "#007E0D"))
         )
     }, width = "100%")
     
