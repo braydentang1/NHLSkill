@@ -498,6 +498,7 @@ server <- function(input, output, session) {
           $(header[i]).attr('title', tips[i]);
         }
         ")) %>%
+        formatRound(columns = c("OPS", "Off. GAR", "XGF", "SCF"), 2) %>%
         formatStyle(
           columns = c("OPS", "Off. GAR", "XGF", "SCF"),
           backgroundColor = styleInterval(brks, clrs),
@@ -525,12 +526,13 @@ server <- function(input, output, session) {
           $(header[i]).attr('title', tips[i]);
         }
         ")) %>%
+        formatRound(columns = c("DPS", "Def. GAR", "XGA", "SCA"), 2) %>%
         formatStyle(
           columns = c("DPS", "Def. GAR", "XGA", "SCA"),
           backgroundColor = styleInterval(brks, clrs),
           fontWeight = "bold"
           )
-    }, width = "100%")
+    }, width = "100%") 
     
     ### TAB 2 ###
     # Update player selections if the user selects active only
@@ -1265,7 +1267,9 @@ server <- function(input, output, session) {
             `Defensive Score` = def_contribution,
             Player = player
           ) %>%
-          arrange(by = -`Offensive Score`) 
+          arrange(by = -`Offensive Score`) %>%
+          datatable() %>%
+          formatRound(columns = c("Offensive Score", "Defensive Score"), 2) 
         
       } else {
         
@@ -1279,7 +1283,9 @@ server <- function(input, output, session) {
             `Defensive Score` = def_contribution,
             Player = player
           ) %>%
-          arrange(by = -`Offensive Score`) 
+          arrange(by = -`Offensive Score`) %>%
+          datatable() %>%
+          formatRound(columns = c("Offensive Score", "Defensive Score"), 2) 
         
         
       }
