@@ -447,8 +447,8 @@ server <- function(input, output, session) {
       
       # This is to produce a heatmap where darker colours correspond with larger values.
       brks <- quantile(lookup()$relevant_data_off[, -1], probs = seq(.05, .95, .05), na.rm = TRUE)
-      clrs <- round(seq(202, 115, length.out = length(brks) + 1), 0) %>%
-        {paste0("rgb(57", ",", ., ",", "204)")}
+      clrs <- round(seq(250, 150, length.out = length(brks) + 1), 0) %>%
+        {paste0("rgb(57", ",", ., ",", "250)")}
       
       lookup()$relevant_data_off %>%
         mutate(year = as.factor(year)) %>%
@@ -466,17 +466,16 @@ server <- function(input, output, session) {
         formatStyle(
           columns = c("OPS", "Off. GAR", "XGF", "SCF"),
           backgroundColor = styleInterval(brks, clrs),
-          fontWeight = "bold",
-          color = styleInterval(cuts = 0, values = c("red", "#007E0D"))
-        )
+          fontWeight = "bold"
+          )
     }, width = "100%")
     
     # Same thing as above, but for offence.
     output$key_variables_def <- DT::renderDataTable({
       
       brks <- quantile(lookup()$relevant_data_def[, -1], probs = seq(.05, .95, .05), na.rm = TRUE)
-      clrs <- round(seq(202, 115, length.out = length(brks) + 1), 0) %>%
-        {paste0("rgb(57", ",", ., ",", "204)")}
+      clrs <- round(seq(250, 150, length.out = length(brks) + 1), 0) %>%
+        {paste0("rgb(57", ",", ., ",", "250)")}
       
       lookup()$relevant_data_def %>%
         mutate(year = as.factor(year)) %>%
@@ -494,9 +493,8 @@ server <- function(input, output, session) {
         formatStyle(
           columns = c("DPS", "Def. GAR", "XGA", "SCA"),
           backgroundColor = styleInterval(brks, clrs),
-          fontWeight = "bold",
-          color = styleInterval(cuts = 0, values = c("red", "#007E0D"))
-        )
+          fontWeight = "bold"
+          )
     }, width = "100%")
     
     ### TAB 2 ###

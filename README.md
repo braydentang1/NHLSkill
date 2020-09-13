@@ -5,11 +5,11 @@ The application can be viewed [here.](http://bit.ly/nhl_profiler)
 
 # Motivation
 
-Often, we hear countless debates regarding whether X player contributes more than Y in some specific aspect of a hockey game. Crosby vs. Ovechkin, Heiskanen vs. Makar, Hughes vs Kakko - the list goes on. In general, the majority of these debates come down to either the so called "eye-test" or excessive reliance on a single particular statistic to support what already wants to be seen. I wanted to provide a more statistically sound way to compare players that looked at all of these stats at once. 
+Often, we hear countless debates regarding whether X player contributes more than Y. Crosby vs. Ovechkin, Heiskanen vs. Makar, Hughes vs Kakko - the list goes on. In general, the majority of these debates come down to either the so called "eye-test" or excessive reliance on a single particular statistic to support what already wants to be seen. I wanted to provide a more statistically sound way to compare players that looked at all of these stats at once. 
 
 This model is not perfect - there are still aspects of players that aren't being captured (zone entries for example). In addition, the "eye-test" is still useful - it is difficult to capture all contexts with just numbers.
 
-Other individuals havve attempted similar ideas to what this application and model does - however, a common problem with some other models is that they are typically biased towards those who generate above average offence (specifically high Corsi/points per game players) while ignoring defensive contributions. Thus, players like Valeri Nichushkin or Zach Aston-Reese are often assigned poor or lack luster ratings even though both players are third liners who exhibit strong defensive play in their own end.
+Other individuals have attempted similar ideas to what this application and model does - however, a common problem with some other models is that they are typically biased towards those who generate above average offence (specifically high Corsi/points per game players) while ignoring defensive contributions. Thus, players like Valeri Nichushkin or Zach Aston-Reese are often assigned poor or lack luster ratings even though both players are third liners who exhibit strong defensive play in their own end.
 
 # Methods
 
