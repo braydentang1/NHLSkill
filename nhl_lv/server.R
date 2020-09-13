@@ -313,15 +313,54 @@ server <- function(input, output, session) {
       # For the (1-alpha/2)% CI's.
       uncertainty_df <- lookup()$bootstrap_uncertainty
       
+      # If player doesn't exist in the year, return NA's. This happens if the lookup above
+      # returns an empty table, in which case, offensive and defensive scores are missing as well.
+      if (nrow(graphing_dist) == 0) {
+        
+        vline_data_off <- tibble(
+          Bound = c("Estimated Offensive Score", "Lower", "Upper"),
+          Value = c(0, 0, 0)
+        )
+        vline_data_def <- tibble(
+          Bound = c("Estimated Defensive Score", "Lower", "Upper"),
+          Value = c(0, 0, 0)
+        )
+        
+        graphing_dist <- tibble(
+          player = NA,
+          off_contribution = NA,
+          def_contribution = NA,
+          seed_number = NA,
+          `Offensive Score` = NA,
+          `Defensive Score` = NA
+        )
+          
+        } else {
+          
+          vline_data_off <- tibble(
+            Bound = c("Estimated Offensive Score", "Lower", "Upper"),
+            Value = c(
+              round(lookup()$off_score, 2),
+              round(uncertainty_df$lower_off, 2),
+              round(uncertainty_df$upper_off, 2)
+              )
+          )
+          
+          vline_data_def <- tibble(
+            Bound = c("Estimated Defensive Score", "Lower", "Upper"),
+            Value = c(
+              round(lookup()$def_score, 2),
+              round(uncertainty_df$lower_def, 2),
+              round(uncertainty_df$upper_def, 2)
+            )
+          )
+      }
+      
       # Offensive score distribution plot with CI.
       off_plot <- ggplot(graphing_dist, aes(x = `Offensive Score`)) +
         geom_density(fill = "#ffffff") +
         geom_vline(
-          data = tibble(
-            Bound = c("Estimated Offensive Score", "Lower", "Upper"),
-            Value = c(round(lookup()$off_score, 2), 
-                      round(uncertainty_df$lower_off, 2),
-                      round(uncertainty_df$upper_off, 2))),
+          data = vline_data_off,
           aes(xintercept = Value, color = Bound)
         ) +
         scale_colour_manual(values = c("black", "red", "red")) + 
@@ -341,11 +380,7 @@ server <- function(input, output, session) {
       def_plot <- ggplot(graphing_dist, aes(x = def_contribution)) +
         geom_density(fill = "#555555") +
         geom_vline(
-          data = tibble(
-            Bound = c("Estimated Defensive Score", "Lower", "Upper"),
-            Value = c(round(lookup()$def_score, 2), 
-                      round(uncertainty_df$lower_def, 2),
-                      round(uncertainty_df$upper_def, 2))),
+          data = vline_data_def,
           aes(xintercept = Value, color = Bound)
         ) +
         scale_colour_manual(values = c("black", "red", "red")) + 
@@ -947,6 +982,7 @@ server <- function(input, output, session) {
           title = HTML(sub(" ", "<br>", input$player1_for)),
           type = 2,
           subtitle = paste(full_team_name, sep = ""),
+          footer = actionButton("p1_f_actn_button", label = "View individual profile"),
           p(HTML(paste0("Offensive Score: ", round(actual_scores$value[1], 2), "<br>",
                         "Defensive Score: ", round(actual_scores$value[2], 2)))),
           src = paste0("images/", "players/", name_id, ".jpg"), 
@@ -970,6 +1006,7 @@ server <- function(input, output, session) {
           title = HTML(sub(" ", "<br>", input$player1_def)),
           type = 2,
           subtitle = paste(full_team_name, sep = ""),
+          footer = actionButton("p1_d_actn_button", label = "View individual profile"),
           p(HTML(paste0("Offensive Score: ", round(actual_scores$value[1], 2), "<br>",
                         "Defensive Score: ", round(actual_scores$value[2], 2)))),
           src = paste0("images/", "players/", name_id, ".jpg"), 
@@ -1005,7 +1042,8 @@ server <- function(input, output, session) {
         widgetUserBox(
           title = HTML(sub(" ", "<br>", input$player2_for)),
           type = 2,
-          subtitle = paste(full_team_name, sep = ""),
+          subtitle = paste(full_team_name, sep = ""), 
+          footer = actionButton("p2_f_actn_button", label = "View individual profile"),
           p(HTML(paste0("Offensive Score: ", round(actual_scores$value[1], 2), "<br>",
                         "Defensive Score: ", round(actual_scores$value[2], 2)))),
           src = paste0("images/", "players/", name_id, ".jpg"), 
@@ -1029,6 +1067,7 @@ server <- function(input, output, session) {
           title = HTML(sub(" ", "<br>", input$player2_def)),
           type = 2,
           subtitle = paste(full_team_name, sep = ""),
+          footer = actionButton("p2_d_actn_button", label = "View individual profile"),
           p(HTML(paste0("Offensive Score: ", round(actual_scores$value[1], 2), "<br>",
                         "Defensive Score: ", round(actual_scores$value[2], 2)))),
           src = paste0("images/", "players/", name_id, ".jpg"), 
@@ -1056,6 +1095,146 @@ server <- function(input, output, session) {
         • For the distribution plot, pressing autoscale in the plot toolbar (upper right corner of the plot) and adjusting the y-axis placement might be useful."), style = "text-align: justify; font-size: 16px"),
         type = "info", width = "1000px"
       )
+    })
+    
+    # For the action buttons to view player profiles
+    
+    # Player 1, Forward
+    observeEvent(input$p1_f_actn_button, {
+      
+      updateTabsetPanel(session, inputId = "tabset", selected = "indiv")
+      
+      if (input$active_only_tab2 == TRUE) {
+        
+        # If a player did not play in 2020, they are inactive. 
+        all_players_2020_only <- all_players %>%
+          filter(year == 2020) %>%
+          select(player) %>%
+          pull(.)
+        
+        updateSelectInput(
+          session,
+          inputId = "player",
+          choices = all_players_2020_only,
+          selected = input$player1_for
+        )
+        
+      } else {
+        
+        # Don't do anything if the box isn't checked.
+        updateSelectInput(
+          session,
+          inputId = "player",
+          choices = sort(unique(c(
+            all_forwards_gte[["2015"]]$data$player,
+            all_defenceman_gte[["2015"]]$data$player))),
+          selected = input$player1_for
+        )
+      }
+      
+    })
+    
+    # Player 2, Forward
+    observeEvent(input$p2_f_actn_button, {
+      
+      updateTabsetPanel(session, inputId = "tabset", selected = "indiv")
+      
+      if (input$active_only_tab2 == TRUE) {
+        
+        # If a player did not play in 2020, they are inactive. 
+        all_players_2020_only <- all_players %>%
+          filter(year == 2020) %>%
+          select(player) %>%
+          pull(.)
+        
+        updateSelectInput(
+          session,
+          inputId = "player",
+          choices = all_players_2020_only,
+          selected = input$player2_for
+        )
+        
+      } else {
+        
+        # Don't do anything if the box isn't checked.
+        updateSelectInput(
+          session,
+          inputId = "player",
+          choices = sort(unique(c(
+            all_forwards_gte[["2015"]]$data$player,
+            all_defenceman_gte[["2015"]]$data$player))),
+          selected = input$player2_for
+        )
+      }
+    })
+    
+    # Player 1, Defenceman
+    observeEvent(input$p1_d_actn_button, {
+      
+      updateTabsetPanel(session, inputId = "tabset", selected = "indiv")
+      
+      if (input$active_only_tab2 == TRUE) {
+        
+        # If a player did not play in 2020, they are inactive. 
+        all_players_2020_only <- all_players %>%
+          filter(year == 2020) %>%
+          select(player) %>%
+          pull(.)
+        
+        updateSelectInput(
+          session,
+          inputId = "player",
+          choices = all_players_2020_only,
+          selected = input$player1_def
+        )
+        
+      } else {
+        
+        # Don't do anything if the box isn't checked.
+        updateSelectInput(
+          session,
+          inputId = "player",
+          choices = sort(unique(c(
+            all_forwards_gte[["2015"]]$data$player,
+            all_defenceman_gte[["2015"]]$data$player))),
+          selected = input$player1_def
+        )
+      }
+      
+    })
+    
+    # Player 2, Defenceman
+    observeEvent(input$p2_d_actn_button, {
+      updateTabsetPanel(session, inputId = "tabset", selected = "indiv")
+      
+      if (input$active_only_tab2 == TRUE) {
+        
+        # If a player did not play in 2020, they are inactive. 
+        all_players_2020_only <- all_players %>%
+          filter(year == 2020) %>%
+          select(player) %>%
+          pull(.)
+        
+        updateSelectInput(
+          session,
+          inputId = "player",
+          choices = all_players_2020_only,
+          selected = input$player2_def
+        )
+        
+      } else {
+        
+        # Don't do anything if the box isn't checked.
+        updateSelectInput(
+          session,
+          inputId = "player",
+          choices = sort(unique(c(
+            all_forwards_gte[["2015"]]$data$player,
+            all_defenceman_gte[["2015"]]$data$player))),
+          selected = input$player2_def
+        )
+      }
+    
     })
     
     ### TAB 3: Leaderboard ###
