@@ -436,7 +436,7 @@ server <- function(input, output, session) {
         • The model is hierarchical (random intercept). Therefore, players who entered the league after the year that is selected still have their scores influenced by players who came before, due to the global pooling effect. <br> <br>
         • Players who have less than 600 minutes of time on ice in 2020 are considered inactive/retired. <br> <br>
         • I purposely abbreviate CI as depending on your perspective these intervals can either be confidence or credible intervals. <br> <br>
-        • All statistics in the table are centered to have zero mean and unit variance per each year and position. <br> <br>
+        • All statistics in the table are centered to have zero mean and scaled to unit variance per each year and position. <br> <br>
         • Generally, using data from 2015 results in better estimates due to more data, but players who have seen dramatic changes in their play may have their values distorted. <br> <br>
         • For the distribution plot, pressing autoscale in the plot toolbar (upper right corner of the plot) and adjusting the y-axis placement might be useful."), style = "text-align: justify; font-size: 16px"),
         type = "info", width = "1000px"
@@ -457,7 +457,7 @@ server <- function(input, output, session) {
         updateSelectInput(
           session,
           inputId = "player",
-          choices = all_players_2020_only,
+          choices = sort(all_players_2020_only),
           selected = "sidney crosby"
         )
         
@@ -541,18 +541,54 @@ server <- function(input, output, session) {
     
       if (input$for_or_def == "Forwards") {
         
-        # Pivot long data to wide to make it easier to compute differences        
+        # Pivot long data to wide to make it easier to compute differences (providing)
+        # that the players exist in the specific year in the first place.
         all_scores_uncertainty <- all_forwards_gte_u[[as.character(input$year_since_tab2)]] %>%
-          filter(player %in% c(input$player1_for, input$player2_for)) %>%
-          pivot_wider(id_cols = seed_number, names_from = player, values_from = c(off_contribution, def_contribution)) 
+          filter(player %in% c(input$player1_for, input$player2_for)) 
         
+        if (nrow(all_scores_uncertainty) != 0) {
+          all_scores_uncertainty <- all_scores_uncertainty %>%
+            pivot_wider(id_cols = seed_number, names_from = player, values_from = c(off_contribution, def_contribution)) 
+        }
+
         # Find the actual factor scores for player 1 and player 2.
         idx_p1_orig <- which(all_forwards_gte[[as.character(input$year_since_tab2)]]$factor_scores$player == input$player1_for)
         idx_p2_orig <- which(all_forwards_gte[[as.character(input$year_since_tab2)]]$factor_scores$player == input$player2_for)
         
         # If the user selects same player 1 and same player 2, output NA.
         # If they don't appear, then set to NA to prevent graphing anything.
-        if (input$player1_for == input$player2_for | length(idx_p1_orig) == 0 | length(idx_p1_orig) == 0) {
+        if (length(idx_p1_orig) == 0 | length(idx_p2_orig) == 0) {
+          
+          # Check if one of the players is missing/not missing out of the two.
+          # If they are, then don't show anything. 
+          
+          # Player 1 is missing, player 2 is not
+          if (length(idx_p1_orig) == 0 & length(idx_p2_orig) != 0) {
+            
+            p1_offence_score <- NA
+            p2_offence_score <- all_forwards_gte[[as.character(input$year_since_tab2)]]$factor_scores$off_contribution[idx_p2_orig]
+            
+            p1_defence_score <- NA
+            p2_defence_score <- all_forwards_gte[[as.character(input$year_since_tab2)]]$factor_scores$def_contribution[idx_p2_orig]
+            
+            # Player 1 is not missing, player 2 is
+            } else if (length(idx_p1_orig) != 0 & length(idx_p2_orig) == 0) {
+            
+              p1_offence_score <- all_forwards_gte[[as.character(input$year_since_tab2)]]$factor_scores$off_contribution[idx_p1_orig]
+              p2_offence_score <- NA
+              
+              p1_defence_score <- all_forwards_gte[[as.character(input$year_since_tab2)]]$factor_scores$def_contribution[idx_p1_orig]
+              p2_defence_score <- NA
+              
+            } else {
+              
+              p1_offence_score <- NA
+              p2_offence_score <- NA
+              
+              p1_defence_score <- NA
+              p2_defence_score <- NA
+              
+            }
           
           list(
             off_scores_diff = NA,
@@ -562,7 +598,14 @@ server <- function(input, output, session) {
             off_lt_0 = NA,
             def_lt_0 = NA,
             quantiles = NA,
-            actuals = NA
+            actuals = tibble(
+              score = c(
+                "p1_off", "p2_off", "p1_def", "p2_def"
+              ),
+              value = c(
+                p1_offence_score, p2_offence_score, p1_defence_score, p2_defence_score
+              )
+            )
           )
           
         } else {
@@ -587,7 +630,17 @@ server <- function(input, output, session) {
         colnames(all_scores_uncertainty)[idx_player1] <- c("player1_off_contrib", "player1_def_contrib")
         colnames(all_scores_uncertainty)[idx_player2] <- c("player2_off_contrib", "player2_def_contrib")
         
-        # Compute the distribution of offensive and defensive scores. Output vectors in a list.
+        # If for some reason, the user decides to pick the same player, then
+        # the length of either idx_player1 or idx_player2 will be 3. Set to 0
+        # in these cases.
+        if (length(idx_player1) == 3) {
+          
+          off_scores <- 0
+          def_scores <- 0
+        
+        } else {
+          # Compute the distribution of offensive and defensive scores (if two
+          # different players were selected). Output vectors in a list.
         off_scores <- all_scores_uncertainty %>%
           select(contains("off_contrib")) %>%
           drop_na(.) %>%
@@ -599,6 +652,7 @@ server <- function(input, output, session) {
           drop_na(.) %>%
           transmute(diff = as.numeric(player1_def_contrib - player2_def_contrib)) %>%
           pull(.) 
+        }
         
         # Fix the confidence level to 90% - this is intentional.
         desired_confidence <- 0.90
@@ -647,13 +701,45 @@ server <- function(input, output, session) {
         # This is exactly the same thing as above, except for defenceman instead of forwards.
         
         all_scores_uncertainty <- all_defenceman_gte_u[[as.character(input$year_since_tab2)]] %>%
-          filter(player %in% c(input$player1_def, input$player2_def)) %>%
-          pivot_wider(id_cols = seed_number, names_from = player, values_from = c(off_contribution, def_contribution)) 
+          filter(player %in% c(input$player1_def, input$player2_def)) 
+        
+        if (nrow(all_scores_uncertainty) != 0) {
+          all_scores_uncertainty <- all_scores_uncertainty %>%
+            pivot_wider(id_cols = seed_number, names_from = player, values_from = c(off_contribution, def_contribution)) 
+        }
         
         idx_p1_orig <- which(all_defenceman_gte[[as.character(input$year_since_tab2)]]$factor_scores$player == input$player1_def)
         idx_p2_orig <- which(all_defenceman_gte[[as.character(input$year_since_tab2)]]$factor_scores$player == input$player2_def)
         
-        if (input$player1_def == input$player2_def | length(idx_p1_orig) == 0 | length(idx_p2_orig) == 0) {
+        if (length(idx_p1_orig) == 0 | length(idx_p2_orig) == 0) {
+          
+          # Check if one of the players is missing/not missing out of the two.
+          # If they are, then don't show anything.
+          if (length(idx_p1_orig) == 0 & length(idx_p2_orig) != 0) {
+            
+            p1_offence_score <- NA
+            p2_offence_score <- all_defenceman_gte[[as.character(input$year_since_tab2)]]$factor_scores$off_contribution[idx_p2_orig]
+            
+            p1_defence_score <- NA
+            p2_defence_score <- all_defenceman_gte[[as.character(input$year_since_tab2)]]$factor_scores$def_contribution[idx_p2_orig]
+            
+          } else if (length(idx_p1_orig) != 0 & length(idx_p2_orig) == 0) {
+            
+            p1_offence_score <- all_defenceman_gte[[as.character(input$year_since_tab2)]]$factor_scores$off_contribution[idx_p1_orig]
+            p2_offence_score <- NA
+            
+            p1_defence_score <- all_defenceman_gte[[as.character(input$year_since_tab2)]]$factor_scores$def_contribution[idx_p1_orig]
+            p2_defence_score <- NA
+            
+          } else {
+            
+            p1_offence_score <- NA
+            p2_offence_score <- NA
+            
+            p1_defence_score <- NA
+            p2_defence_score <- NA
+            
+          }
           
           list(
             off_scores_diff = NA,
@@ -663,7 +749,14 @@ server <- function(input, output, session) {
             off_lt_0 = NA,
             def_lt_0 = NA,
             quantiles = NA,
-            actuals = NA
+            actuals = tibble(
+              score = c(
+                "p1_off", "p2_off", "p1_def", "p2_def"
+              ),
+              value = c(
+                p1_offence_score, p2_offence_score, p1_defence_score, p2_defence_score
+              )
+            )
           )
           
         } else {
@@ -684,6 +777,18 @@ server <- function(input, output, session) {
         colnames(all_scores_uncertainty)[idx_player1] <- c("player1_off_contrib", "player1_def_contrib")
         colnames(all_scores_uncertainty)[idx_player2] <- c("player2_off_contrib", "player2_def_contrib")
         
+        # If for some reason, the user decides to pick the same player, then
+        # the length of either idx_player1 or idx_player2 will be 3. Set to 0
+        # in these cases.
+        if (length(idx_player1) == 3) {
+          
+          off_scores <- 0
+          def_scores <- 0
+          
+        } else {
+        
+          # Compute the distribution of offensive and defensive scores (if two
+          # different players were selected). Output vectors in a list.
         off_scores <- all_scores_uncertainty %>%
           select(contains("off_contrib")) %>%
           drop_na(.) %>%
@@ -696,6 +801,7 @@ server <- function(input, output, session) {
           transmute(diff = as.numeric(player1_def_contrib - player2_def_contrib)) %>%
           pull(.) 
         
+        }
         
         desired_confidence <- 0.90
         prob_lt_0_off <- mean(off_scores >= 0)
@@ -749,13 +855,15 @@ server <- function(input, output, session) {
         forwards <- all_players_2020_only %>%
           filter(position == "F") %>%
           select(player) %>%
-          pull(.)
+          pull(.) %>%
+          sort(.)
         
         # find all defenceman who have >600 min TOI in 2020
         defenceman <- all_players_2020_only %>%
           filter(position == "D") %>%
           select(player) %>%
-          pull(.)
+          pull(.) %>%
+          sort(.)
         
         # Update forwards
         updateSelectInput(session, "player1_for", choices = forwards, selected = "sidney crosby")
@@ -1029,6 +1137,7 @@ server <- function(input, output, session) {
       # Get the actual offensive and defensive scores relevant to the player 
       actual_scores <- lookup_tab2()$actuals %>%
         filter(score %in% c("p2_off", "p2_def"))
+    
       
       if (input$for_or_def == "Forwards") {
         
@@ -1093,7 +1202,7 @@ server <- function(input, output, session) {
         • The model is hierarchical (random intercept). Therefore, players who entered the league after the year that is selected still have their scores influenced by players who came before, due to the global pooling effect. <br> <br>
         • Players who have less than 600 minutes of time on ice in 2020 are not included because they weren't modelled. <br> <br>
         • I purposely abbreviate CI as depending on your perspective these intervals can either be confidence or credible intervals. <br> <br>
-                • Generally, using data from 2015 results in better estimates due to more data, but players who have seen dramatic changes in their play may have their values distorted. <br> <br>
+        • Generally, using data from 2015 results in better estimates due to more data, but players who have seen dramatic changes in their play may have their values distorted. <br> <br>
         • For the distribution plot, pressing autoscale in the plot toolbar (upper right corner of the plot) and adjusting the y-axis placement might be useful."), style = "text-align: justify; font-size: 16px"),
         type = "info", width = "1000px"
       )
@@ -1152,7 +1261,7 @@ server <- function(input, output, session) {
         updateSelectInput(
           session,
           inputId = "player",
-          choices = all_players_2020_only,
+          choices = sort(all_players_2020_only),
           selected = input$player2_for
         )
         
@@ -1186,7 +1295,7 @@ server <- function(input, output, session) {
         updateSelectInput(
           session,
           inputId = "player",
-          choices = all_players_2020_only,
+          choices = sort(all_players_2020_only),
           selected = input$player1_def
         )
         
@@ -1220,7 +1329,7 @@ server <- function(input, output, session) {
         updateSelectInput(
           session,
           inputId = "player",
-          choices = all_players_2020_only,
+          choices = sort(all_players_2020_only),
           selected = input$player2_def
         )
         
