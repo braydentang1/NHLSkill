@@ -3,6 +3,8 @@ Estimating offensive and defensive contributions of NHL hockey players since 201
 
 The application can be viewed [here.](http://bit.ly/nhl_profiler)
 
+Note: I have disabled the webserver for now and so the application must be run locally.
+
 # Motivation
 
 Often, we hear countless debates regarding whether X player contributes more than Y. Crosby vs. Ovechkin, Heiskanen vs. Makar, Hughes vs Kakko - the list goes on. In general, the majority of these debates come down to either the so called "eye-test" or excessive reliance on a single particular statistic to support what already wants to be seen. I wanted to provide a more statistically sound way to compare players that looked at all of these stats at once. 
